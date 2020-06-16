@@ -1,11 +1,12 @@
 #include "benchmark/benchmark.h"
+#include "lyra/lyra.hpp"
 
-#include "sysbench/init.hpp"
 #include "sysbench/cuda.hpp"
+#include "sysbench/init.hpp"
 #include "sysbench/logger.hpp"
+#include "sysbench/flags.hpp"
 
 namespace sysbench {
-
 
 typedef struct {
   AfterInitFn fn;
@@ -34,7 +35,7 @@ void do_before_inits() {
 }
 
 void do_inits() {
-    for (size_t i = 0; i < ninits; ++i) {
+  for (size_t i = 0; i < ninits; ++i) {
     LOG(debug, "Running init function {}", i);
     int status = inits[i].fn();
     if (status) {
@@ -55,24 +56,32 @@ void do_after_inits() {
 
 void initialize(int *argc, char **argv) {
 
-  // TODO: detect CUDA devices
-  // init_cuda();
+  // have benchmark library consume some flags
+  benchmark::Initialize(argc, argv);
+
+  sysbench::add_flags();
+  sysbench::parse(argc, argv);
+
+  if (sysbench::flags::parseError) {
+    std::cerr << "Error in command line: " << flags::parseErrorMessage
+              << std::endl;
+    sysbench::show_help(std::cerr);
+    exit(EXIT_FAILURE);
+  }
+  if (sysbench::flags::showHelp) {
+    sysbench::show_help(std::cout);
+    exit(EXIT_SUCCESS);
+  }
 
   // create logger
   sysbench::logging::init();
 
-
   do_before_inits();
   do_inits();
   do_after_inits();
-
-  benchmark::Initialize(argc, argv);
-
 }
 
-void run() {
-  benchmark::RunSpecifiedBenchmarks();
-}
+void run() { benchmark::RunSpecifiedBenchmarks(); }
 
 void RegisterInit(InitFn fn) {
   if (ninits >= sizeof(inits) / sizeof(inits[0])) {
@@ -103,4 +112,4 @@ void RegisterVersionString(const std::string &s) {
   version_strings.push_back(s);
 }
 
-}
+} // namespace sysbench

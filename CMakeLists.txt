@@ -31,8 +31,9 @@ add_library(benchmark::benchmark ALIAS benchmark)
 
 # Add spdlog
 add_subdirectory(thirdparty/spdlog)
-# google benchmark doesn't seem to export benchmark::benchmark target as promised
-add_library(benchmark::benchmark ALIAS benchmark)
+
+# Add Lyra
+add_subdirectory(thirdparty/Lyra)
 
 add_subdirectory(src)
 
@@ -76,6 +77,7 @@ endif()
 # Link against libraries
 target_link_libraries(sysbench PUBLIC benchmark::benchmark)
 target_link_libraries(sysbench PUBLIC spdlog::spdlog)
+target_link_libraries(sysbench PUBLIC BFG::Lyra)
 
 if(CMAKE_CUDA_COMPILER)
     ## CUDA Toolkit

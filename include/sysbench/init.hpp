@@ -6,6 +6,7 @@
 
 namespace sysbench{ 
 
+
 void initialize(int *argc, char **argv);
 void run();
 
