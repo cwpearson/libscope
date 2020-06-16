@@ -58,6 +58,10 @@ void initialize(int *argc, char **argv) {
   // TODO: detect CUDA devices
   // init_cuda();
 
+  // create logger
+  sysbench::logging::init();
+
+
   do_before_inits();
   do_inits();
   do_after_inits();
