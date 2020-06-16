@@ -1,7 +1,7 @@
 # 3.17 for FindCUDAToolkit
 cmake_minimum_required(VERSION 3.17 FATAL_ERROR)
 
-project(sysbench LANGUAGES CXX CUDA VERSION 0.1.0)
+project(sysbench LANGUAGES CXX VERSION 0.1.0)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
 
@@ -9,6 +9,8 @@ option(USE_NUMA ON)
 option(USE_NVTX ON)
 option(USE_OPENMP ON)
 option(USE_CUDA ON)
+
+
 
 # Get the git version
 include(Git)
@@ -48,19 +50,37 @@ target_include_directories(sysbench PUBLIC
   include
 )
 
+# enable CUDA if desired and available
+include(CheckLanguage)
+if(USE_CUDA)
+  check_language(CUDA)
+  if(CMAKE_CUDA_COMPILER)
+    enable_language(CUDA)
+  else()
+    message(WARNING "No CUDA support")
+    target_compile_definitions(sysbench PUBLIC -DSYSBENCH_USE_CUDA=0)
+  endif()
+endif()
+
 # Request that sysbench be built with -std=c++11
 # As this is a public compile feature anything that links to
 # sysbench will also build with -std=c++11
 target_compile_features(sysbench PUBLIC cxx_std_11)
+if(CMAKE_CUDA_COMPILER)
+  set_property(TARGET sysbench PROPERTY CUDA_STANDARD 11)
+endif()
 
 # Link against libraries
 target_link_libraries(sysbench PUBLIC benchmark::benchmark)
 target_link_libraries(sysbench PUBLIC spdlog::spdlog)
 
-## CUDA Toolkit
-find_package(CUDAToolkit REQUIRED)
-target_link_libraries(sysbench PUBLIC CUDA::cudart)
-target_compile_definitions(sysbench PUBLIC -DSYSBENCH_USE_CUDA=1)
+if(CMAKE_CUDA_COMPILER)
+    ## CUDA Toolkit
+    find_package(CUDAToolkit REQUIRED)
+    target_link_libraries(sysbench PUBLIC CUDA::cudart)
+    message(STATUS "CUDA found, compiling with -DSYSBENCH_USE_CUDA=1")
+    target_compile_definitions(sysbench PUBLIC -DSYSBENCH_USE_CUDA=1)
+endif()
 
 ## NUMA
 if (USE_NUMA)
@@ -105,9 +125,6 @@ else(OpenMP_FOUND)
   add_definitions(-DUSE_OPENMP=0)
   message(WARNING "didn't find OpenMP, some benchmarks will be unavailable.")
 endif(OpenMP_FOUND)
-
-target_compile_features(sysbench PUBLIC cxx_std_11)
-set_property(TARGET sysbench PROPERTY CUDA_STANDARD 11)
 
 
 add_library(sysbench::sysbench ALIAS sysbench)
