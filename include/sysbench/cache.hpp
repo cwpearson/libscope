@@ -4,6 +4,6 @@
 
 void flush(void *p);
 
-inline void barrier_all();
+void barrier_all();
 
-inline void flush_all(void *p, const size_t n);
+void flush_all(void *p, const size_t n);
