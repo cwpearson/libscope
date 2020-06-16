@@ -22,4 +22,16 @@ int node_count();
  */
 std::vector<int> ids();
 
+/* bind to `node` while in scope. Release bind on destruction
+*/
+class ScopedBind {
+  bool active;
+
+public:
+  ScopedBind(int node);
+  ~ScopedBind();
+  ScopedBind(const ScopedBind &other) = delete;
+  ScopedBind(ScopedBind &&other);
+};
+
 } // namespace numa
