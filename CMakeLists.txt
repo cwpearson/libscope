@@ -20,12 +20,7 @@ message(STATUS SYSBENCH_GIT_REFSPEC=${SYSBENCH_GIT_REFSPEC})
 message(STATUS SYSBENCH_GIT_HASH=${SYSBENCH_GIT_HASH})
 message(STATUS SYSBENCH_GIT_LOCAL_CHANGES=${SYSBENCH_GIT_LOCAL_CHANGES})
 
-# Generate version file
-message(STATUS "${PROJECT_SOURCE_DIR}/.../config.hpp.in -> ${PROJECT_BINARY_DIR}/.../config.hpp")
-configure_file (
-    "${PROJECT_SOURCE_DIR}/include/sysbench/config.hpp.in"
-    "${PROJECT_BINARY_DIR}/include/sysbench/config.hpp"
-)
+
 
 # add Google Benchmark
 set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "blah") # remove dep on gtest
@@ -49,6 +44,14 @@ add_library(sysbench
 target_include_directories(sysbench PUBLIC
   include
 )
+
+# Generate version file
+message(STATUS "${PROJECT_SOURCE_DIR}/.../config.hpp.in -> ${PROJECT_BINARY_DIR}/.../config.hpp")
+configure_file (
+    "${PROJECT_SOURCE_DIR}/include/sysbench/config.hpp.in"
+    "${PROJECT_BINARY_DIR}/include/sysbench/config.hpp"
+)
+target_include_directories(sysbench PUBLIC ${PROJECT_BINARY_DIR}/include/)
 
 # enable CUDA if desired and available
 include(CheckLanguage)

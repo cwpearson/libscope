@@ -13,3 +13,4 @@
 #include "sysbench/logger.hpp"
 #include "sysbench/numa.hpp"
 #include "sysbench/page_size.hpp"
+#include "sysbench/config.hpp"
