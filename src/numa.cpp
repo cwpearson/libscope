@@ -54,4 +54,19 @@ std::vector<int> ids() {
   return ret;
 }
 
+
+  ScopedBind::ScopedBind(int node) : active(true) { bind_node(node); }
+
+  ScopedBind::~ScopedBind() {
+    if (active) {
+      bind_node(-1);
+    }
+  }
+  ScopedBind::ScopedBind(ScopedBind &&other) {
+    active = other.active;
+    other.active = false;
+  }
+
+
+
 } // namespace numa
