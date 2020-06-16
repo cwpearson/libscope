@@ -4,11 +4,11 @@
 
 namespace numa {
 
-/* true if system supports NUMA, false otherwise
+/* True if there is NUMA support and the system supports NUMA, false otherwise
  */
 bool available();
 
-/* bind processing and allocation to `node`.
+/* bind future processing and allocation by this thread to `node`.
 If no NUMA support, does nothing
 */
 void bind_node(int node);
