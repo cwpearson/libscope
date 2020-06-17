@@ -1,7 +1,8 @@
+#include <iostream>
+
 #include "benchmark/benchmark.h"
 #include "lyra/lyra.hpp"
 
-#include "sysbench/cuda.hpp"
 #include "sysbench/init.hpp"
 #include "sysbench/logger.hpp"
 #include "sysbench/flags.hpp"

@@ -2,8 +2,6 @@
 
 #include <string>
 
-#include "cuda.hpp"
-
 namespace sysbench{ 
 
 
