@@ -87,14 +87,14 @@ turbo::Result write_acpi_cpufreq_boost(const std::string &str) {
   return write_str(str, "/sys/devices/system/cpu/cpufreq/boost");
 }
 
-turbo::Result read_acpi_cpufeq_boost(std::string &str) {
+turbo::Result read_acpi_cpufreq_boost(std::string &str) {
   return read_one_line(str, "/sys/devices/system/cpu/cpufreq/boost");
 }
 
 namespace turbo {
 
 bool can_modify() {
-#if __amd64__
+#ifdef __amd64__
   return can_read_write("/sys/devices/system/cpu/intel_pstate/no_turbo");
 #elif __powerpc__
   return can_read_write("/sys/devices/system/cpu/cpufreq/boost");
@@ -104,7 +104,7 @@ bool can_modify() {
 }
 
 Result enable() {
-#if __amd64__
+#ifdef __amd64__
   return write_intel_pstate_no_turbo("0");
 #elif __powerpc__
   return write_acpi_cpufreq_boost("1");
@@ -114,7 +114,7 @@ Result enable() {
 }
 
 Result disable() {
-#if __amd64__
+#ifdef __amd64__
   return write_intel_pstate_no_turbo("1");
 #elif __powerpc__
   return write_acpi_cpufreq_boost("0");
@@ -128,7 +128,7 @@ Result get_state(State *state) {
   std::string read;
   Result result;
 
-#if __amd64__
+#ifdef __amd64__
   result = read_intel_pstate_no_turbo(read);
   if (result == Result::SUCCESS) {
     state->enabled = ("0\n" == read);
