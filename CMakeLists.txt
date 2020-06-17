@@ -10,6 +10,17 @@ option(SYSBENCH_USE_NVTX ON)
 option(SYSBENCH_USE_OPENMP ON)
 option(SYSBENCH_USE_CUDA ON)
 
+# link libraries but make the includes system includes to suppress warnings
+# https://stackoverflow.com/questions/52135983/cmake-target-link-libraries-include-as-system-to-suppress-compiler-warnings
+function(target_link_libraries_system target)
+  set(libs ${ARGN})
+  foreach(lib ${libs})
+    get_target_property(lib_include_dirs ${lib} INTERFACE_INCLUDE_DIRECTORIES)
+    target_include_directories(${target} SYSTEM PRIVATE ${lib_include_dirs})
+    target_link_libraries(${target} PUBLIC ${lib})
+  endforeach(lib)
+endfunction(target_link_libraries_system)
+
 # Get the git version
 include(Git)
 git_get_head_revision(SYSBENCH_GIT_REFSPEC SYSBENCH_GIT_HASH)
@@ -37,9 +48,35 @@ add_library(sysbench
   ${SYSBENCH_SOURCES}
 )
 
-target_include_directories(sysbench PUBLIC
-  include
-)
+# if we are included in another project with add_subdirectory(), mark our includes as system includes
+if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+  target_include_directories(sysbench PUBLIC
+    include
+  )
+else()
+  target_include_directories(sysbench SYSTEM PUBLIC
+    include
+  )
+endif()
+
+
+target_compile_options(sysbench PRIVATE
+    -Wall 
+    -Wextra 
+    -Wcast-qual 
+    -Wcast-align 
+    -Wstrict-aliasing 
+    -Wpointer-arith 
+    -Winit-self 
+    -Wshadow 
+    -Wswitch-enum 
+    -Wredundant-decls 
+    -Wfloat-equal 
+    -Wundef 
+    -Wvla
+    -fmax-errors=1 
+    -Wfatal-errors
+  )
 
 # Generate version file
 message(STATUS "${PROJECT_SOURCE_DIR}/.../config.hpp.in -> ${PROJECT_BINARY_DIR}/.../config.hpp")
@@ -72,9 +109,9 @@ if("CUDA" IN_LIST languages)
 endif()
 
 # Link against libraries
-target_link_libraries(sysbench PUBLIC benchmark::benchmark)
-target_link_libraries(sysbench PUBLIC spdlog::spdlog)
-target_link_libraries(sysbench PUBLIC BFG::Lyra)
+target_link_libraries_system(sysbench benchmark::benchmark)
+target_link_libraries_system(sysbench spdlog::spdlog)
+target_link_libraries_system(sysbench BFG::Lyra)
 
 if("CUDA" IN_LIST languages)
     ## CUDA Toolkit
