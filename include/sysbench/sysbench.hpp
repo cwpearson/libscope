@@ -11,7 +11,7 @@
 #endif // SYSBENCH_USE_CUDA == 1
 
 
-
+#include "sysbench/turbo.hpp"
 #include "sysbench/benchmark.hpp"
 #include "sysbench/cache.hpp"
 #include "sysbench/defer.hpp"

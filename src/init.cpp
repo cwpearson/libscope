@@ -1,11 +1,25 @@
 #include <iostream>
 
+#include <signal.h>
+
 #include "benchmark/benchmark.h"
 #include "lyra/lyra.hpp"
 
 #include "sysbench/init.hpp"
 #include "sysbench/logger.hpp"
 #include "sysbench/flags.hpp"
+#include "sysbench/turbo.hpp"
+
+
+/* handler to restore system turbo state
+*/
+void handler(int sig) {
+  // unregister the handler
+  signal(sig, SIG_DFL);
+  // restore a previously-recorded turbo state
+  turbo::set_state();
+  exit(EXIT_FAILURE);
+}
 
 namespace sysbench {
 
@@ -56,6 +70,14 @@ void do_after_inits() {
 }
 
 void initialize(int *argc, char **argv) {
+
+  /* record system turbo state, to be restored in the signal handler*/
+  if (turbo::can_modify()) {
+    turbo::get_state();
+  } else {
+    std::cerr << "couldn't control turbo\n";
+  }
+  signal(SIGINT, handler);
 
   // have benchmark library consume some flags
   benchmark::Initialize(argc, argv);
