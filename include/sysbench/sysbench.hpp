@@ -2,9 +2,15 @@
 
 #include "benchmark/benchmark.h"
 
+#if SYSBENCH_USE_CUDA == 1 && SYSBENCH_USE_NVTX == 1
+#include <nvToolsExt.h>
+#endif
+
 #if SYSBENCH_USE_CUDA == 1
 #include "sysbench/cuda.hpp"
 #endif // SYSBENCH_USE_CUDA == 1
+
+
 
 #include "sysbench/benchmark.hpp"
 #include "sysbench/cache.hpp"
