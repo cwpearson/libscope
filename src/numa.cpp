@@ -1,3 +1,6 @@
+#include <set>
+#include <algorithm>
+
 #if SYSBENCH_USE_NUMA
 #include <numa.h>
 #endif
@@ -6,6 +9,22 @@
 #include "sysbench/logger.hpp"
 
 namespace numa {
+
+void init() {
+  if (!available()) {
+    return;
+  }
+
+  numa_set_strict(1);
+  LOG(debug, "set numa_set_strict(1)");
+  numa_set_bind_policy(1);
+  LOG(debug, "set numa_set_bind_policy(1)");
+
+  numa_exit_on_warn = 1;
+  LOG(debug, "set numa_exit_on_warn = 1");
+  numa_exit_on_error = 1;
+  LOG(debug, "set numa_exit_on_error = 1");
+}
 
 bool available() {
   #if SYSBENCH_USE_NUMA
@@ -42,15 +61,23 @@ std::vector<int> ids() {
   std::vector<int> ret;
   #if SYSBENCH_USE_NUMA
 
-    for(int i = 0; i < numa_num_possible_nodes(); ++i) {
-      if (numa_bitmask_isbitset(numa_all_nodes_ptr, i)) {
-        ret.push_back(i);
-      }
-    }
+  /* we could query numa_bitmask_isbitset for numa_num_possible_nodes(),
+  but we only care about NUMA nodes that also have CPUs in them.
+  */
+
+  // discover available nodes
+  std::set<int> available_nodes;
+  for (int i = 0; i < numa_num_configured_cpus(); ++i) {
+    available_nodes.insert(numa_node_of_cpu(i));
+  }
+  for (auto node : available_nodes) {
+    ret.push_back(node);
+  }
 
   #else
   ret.push_back(0);
   #endif
+  std::sort(ret.begin(), ret.end());
   return ret;
 }
 

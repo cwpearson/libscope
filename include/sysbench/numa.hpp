@@ -4,6 +4,10 @@
 
 namespace numa {
 
+/* to be called during sysbench init
+*/
+void init();
+
 /* True if there is NUMA support and the system supports NUMA, false otherwise
  */
 bool available();

@@ -9,6 +9,7 @@
 #include "sysbench/logger.hpp"
 #include "sysbench/flags.hpp"
 #include "sysbench/turbo.hpp"
+#include "sysbench/numa.hpp"
 
 
 /* handler to restore system turbo state
@@ -98,6 +99,8 @@ void initialize(int *argc, char **argv) {
 
   // create logger
   sysbench::logging::init();
+
+  numa::init();
 
   do_before_inits();
   do_inits();
