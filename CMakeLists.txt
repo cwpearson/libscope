@@ -133,9 +133,11 @@ if (SYSBENCH_USE_NUMA)
       target_link_libraries(sysbench PUBLIC ${NUMA_LIBRARY})
       target_include_directories(sysbench SYSTEM PUBLIC ${NUMA_INCLUDE_DIR})
   else()
-  target_compile_definitions(sysbench PUBLIC -DSYSBENCH_USE_NUMA=0)
+    target_compile_definitions(sysbench PUBLIC -DSYSBENCH_USE_NUMA=0)
     message(WARNING "didn't find NUMA, some benchmarks will be unavailable.")
   endif(NUMA_FOUND)
+else()
+  target_compile_definitions(sysbench PUBLIC -DSYSBENCH_USE_NUMA=0)
 endif(SYSBENCH_USE_NUMA)
 
 ## OpenMP

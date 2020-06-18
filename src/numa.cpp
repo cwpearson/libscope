@@ -1,12 +1,12 @@
-#include <set>
 #include <algorithm>
+#include <set>
 
 #if SYSBENCH_USE_NUMA
 #include <numa.h>
 #endif
 
-#include "sysbench/numa.hpp"
 #include "sysbench/logger.hpp"
+#include "sysbench/numa.hpp"
 
 namespace numa {
 
@@ -15,6 +15,7 @@ void init() {
     return;
   }
 
+#if SYSBENCH_USE_NUMA == 1
   numa_set_strict(1);
   LOG(debug, "set numa_set_strict(1)");
   numa_set_bind_policy(1);
@@ -24,10 +25,11 @@ void init() {
   LOG(debug, "set numa_exit_on_warn = 1");
   numa_exit_on_error = 1;
   LOG(debug, "set numa_exit_on_error = 1");
+#endif
 }
 
 bool available() {
-  #if SYSBENCH_USE_NUMA
+#if SYSBENCH_USE_NUMA == 1
   return -1 != numa_available();
 #else
   return false;
@@ -36,7 +38,7 @@ bool available() {
 
 void bind_node(const int node) {
 
-#if SYSBENCH_USE_NUMA
+#if SYSBENCH_USE_NUMA == 1
   if (-1 == node) {
     numa_bind(numa_all_nodes_ptr);
   } else if (node >= 0) {
@@ -53,13 +55,11 @@ void bind_node(const int node) {
 #endif
 }
 
-int node_count() {
-  return ids().size();
-}
+int node_count() { return ids().size(); }
 
 std::vector<int> ids() {
   std::vector<int> ret;
-  #if SYSBENCH_USE_NUMA
+#if SYSBENCH_USE_NUMA
 
   /* we could query numa_bitmask_isbitset for numa_num_possible_nodes(),
   but we only care about NUMA nodes that also have CPUs in them.
@@ -74,26 +74,23 @@ std::vector<int> ids() {
     ret.push_back(node);
   }
 
-  #else
+#else
   ret.push_back(0);
-  #endif
+#endif
   std::sort(ret.begin(), ret.end());
   return ret;
 }
 
+ScopedBind::ScopedBind(int node) : active(true) { bind_node(node); }
 
-  ScopedBind::ScopedBind(int node) : active(true) { bind_node(node); }
-
-  ScopedBind::~ScopedBind() {
-    if (active) {
-      bind_node(-1);
-    }
+ScopedBind::~ScopedBind() {
+  if (active) {
+    bind_node(-1);
   }
-  ScopedBind::ScopedBind(ScopedBind &&other) {
-    active = other.active;
-    other.active = false;
-  }
-
-
+}
+ScopedBind::ScopedBind(ScopedBind &&other) {
+  active = other.active;
+  other.active = false;
+}
 
 } // namespace numa
