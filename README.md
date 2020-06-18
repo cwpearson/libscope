@@ -1,20 +1,129 @@
 # sysbench
 
-A systems-oriented benchmark support library bringing NUMA, CUDA, and amd64/ppc64le cache control under one roof.
+A systems-oriented benchmark support library brining the following tools under one roof:
+* CUDA support (invluding nvToolsExt)
+* NUMA support
+* CPU Cache Control (amd64 and ppc64le)
+* CPU turbo control (linux)
+* CPU governor control (amd64/linux and ppc64le/linux)
+* [Google's Benchmark library 1.5.1](https://github.com/google/benchmark)
 
-* write benchmarks with programmatic NUMA pinning
-* write benchmarks using CUDA
-* flush CPU caches programmatically
-
-This work was started at the University of Illinois with Professor Wen-Mei Hwu's IMPACT research group in collaboration with IBM's T. J. Watson Research.
+This work was started at the University of Illinois with Professor Wen-Mei Hwu's IMPACT research group in collaboration with IBM's T. J. Watson Research as the SCOPE project.
 
 The [Comm|Scope](github.com/c3sr/comm_scope) multi-GPU communication benchmarking tool uses this library.
 
+## Quickstart
+
+Get CMake 3.17+ (needed for FindCUDAToolkit)
+
+Add to your `CMakeLists.txt`:
+```cmake
+add_subdirectory(thirdparty/sysbench)
+target_link_libraries(<target> sysbench::sysbench)
+```
+
+Include "sysbench/sysbench.hpp"
+```c++
+#include "sysbench/sysbench.hpp"
+
+int main(int argc, char **argv) {
+  // initialize sysbench framework things
+  sysbench::init(&argc, argv);
+  // run all registered benchmarks
+  sysbench::run();
+  // clean up sysbench
+  sysbench::finalize();
+}
+```
+
+Define a benchmark using [google/benchmark](https://github.com/google/benchmark).
+Sysbench includes it built in and supports all google benchmark command line flags.
+
 ## How To
+
+### CPU turbo (`sysbench/turbo.hpp`)
+
+`sysbench::init()` will record the CPU's current turbo state, and attempt to disable it, if it is executed with sufficient permissions (sudo).
+When `sysbench` exits from SIGINT or `finalize()`s, the original state will be restored.
+Otherwise, use `enable-turbo` to enable CPU turbo again.
+
+You may also programatically control the CPU turbo state with the following library functions:
+```c++
+namespace turbo {
+/* true if we are able to control the turbo state
+ */
+bool can_modify();
+
+/* enable turbo
+ */
+Result enable();
+
+/* disable turbo
+ */
+Result disable();
+
+/* record current turbo state in `state`.
+ */
+
+Result get_state(State *state);
+/* set turbo to `state`
+ */
+Result set_state(const State &state);
+
+/* record the current turbo state into the global state
+*/
+Result get_state();
+
+/* set turbo state from the global state
+*/
+Result set_state();
+}
+```
+
+### CPU governor (`sysbench/governor.hpp`)
+
+`sysbench::init()` will record the current CPU governor, and attempt to set it to maximum it, if it is executed with sufficient permissions (sudo).
+When `sysbench` exits from SIGINT or `finalize()`s, the original governor will be restored.
+Otherwise, use `set-minimum` to restore the `powersave` governor.
+
+You may also programatically control the CPU turbo state with the following library functions:
+```c++
+namespace governor {
+
+/* whether modifying the governor is supported
+*/
+bool can_modify();
+
+/* "performance" on linux
+*/
+Result set_state_maximum();
+
+/* "powersave" on linux
+*/
+Result set_state_minimum();
+
+/* record the current CPU goverors to `state`
+*/
+Result get_state(State *state);
+
+/* set the CPU governor to `state`
+*/
+Result set_state(const State &state);
+
+/* save the current governor, to be used with restore()
+*/
+Result record();
+
+/* restore the governor last captured with record()
+*/
+Result restore();
+
+} // namespace turbo
+```
 
 ### NUMA (`sysbench/numa.hpp`)
 
-by default `sysbench` is compiled with NUMA support (USE_NUMA=1). It can be turned off with `cmake -DUSE_NUMA=0`.
+by default `sysbench` is compiled with NUMA support (SYSBENCH_USE_NUMA=1). It can be turned off with `cmake -DUSE_NUMA=0`.
 
 Either way, the following API is exposed in the `numa` namespace.
 If NUMA support is disabled, the API is consistent with a system that has a single NUMA domain with ID 0.
@@ -65,15 +174,18 @@ void flush_all(void *p, const size_t n);
 ```
 
 ## Roadmap
+- [x] Linux Performance Governor
 - [ ] Resolve name collision with [akopytov/sysbench](https://github.com/akopytov/sysbench)
+  - [ ] SCOPE
   - [ ] SOBS (**S**ystem-**O**riented **B**enchmark **S**upport)
   - [ ] SOMBER (**S**ystem-**O**riented **M**icro**BE**nchma**R**k)
-- [ ] Linux Performance Governor
 
 ## Changelog
 
 * v0.1.0
   * Initial port from `c3sr/scope`
+  * CPU governor API
+  * CPU turbo API
   * [google/benchmark](https://github.com/google/benchmark) 1.5.1
   * [bfgroup/lyra](https://github.com/bfgroup/Lyra) 1.4.1
   * [gabime/spdlog](https://github.com/gabime/spdlog) 1.6.1
