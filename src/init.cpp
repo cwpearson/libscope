@@ -1,24 +1,97 @@
 #include <iostream>
+#include <thread>
 
 #include <signal.h>
 
 #include "benchmark/benchmark.h"
 #include "lyra/lyra.hpp"
 
+#include "sysbench/flags.hpp"
+#include "sysbench/governor.hpp"
 #include "sysbench/init.hpp"
 #include "sysbench/logger.hpp"
-#include "sysbench/flags.hpp"
-#include "sysbench/turbo.hpp"
 #include "sysbench/numa.hpp"
+#include "sysbench/turbo.hpp"
 
+/* record the state of the system so we can restore when we exit
+ */
+void record_system_state() {
+  {
+    turbo::Result res = turbo::get_state();
+    if (turbo::Result::SUCCESS != res) {
+      LOG(error, "unable to record turbo state");
+    } else {
+      LOG(info, "recorded system CPU turbo state");
+    }
+  }
+  {
+    governor::Result res = governor::record();
+    if (governor::Result::SUCCESS != res) {
+      LOG(error, "unable to record CPU governor");
+    } else {
+      LOG(info, "recorded CPU goveror");
+    }
+  }
+}
 
-/* handler to restore system turbo state
-*/
+/* restore the state of the system from `record_system_state()`
+ */
+void restore_system_state() {
+  // restore a previously-recorded turbo state
+  {
+    turbo::Result res = turbo::set_state();
+    if (turbo::Result::SUCCESS != res) {
+      LOG(warn,
+          "unable to restore turbo state: {}. (use enable-turbo tool if "
+          "needed)",
+          turbo::get_string(res));
+    } else {
+      LOG(info, "Restored original turbo state");
+    }
+  }
+  // restore a previously-recorded turbo state
+  {
+    governor::Result res = governor::restore();
+    if (governor::Result::SUCCESS != res) {
+      LOG(warn,
+          "unable to restore CPU governor: {}. (use set-minimum tool if "
+          "needed)",
+          governor::get_string(res));
+    } else {
+      LOG(info, "Restored original CPU governor");
+    }
+  }
+}
+
+void stabilize_system_state() {
+  {
+    turbo::Result res = turbo::disable();
+    if (turbo::Result::SUCCESS != res) {
+      LOG(error, "unable to disable CPU turbo: {}. Run with higher privileges?",
+      turbo::get_string(res));
+    } else {
+      LOG(info, "Disabled CPU turbo");
+    }
+  }
+  {
+    governor::Result res = governor::set_state_maximum();
+    if (governor::Result::SUCCESS != res) {
+      LOG(error, "unable to set OS CPU governor to maximum: {}. Run with higher "
+                "privileges?", governor::get_string(res));
+    } else {
+      LOG(info, "Set OS CPU governor to maximum");
+    }
+  }
+  // let CPU frequency ramp
+  std::this_thread::sleep_for(std::chrono::milliseconds(50));
+}
+
+/* on SIGINT, we need to restore the system state
+ */
 void handler(int sig) {
   // unregister the handler
   signal(sig, SIG_DFL);
-  // restore a previously-recorded turbo state
-  turbo::set_state();
+  restore_system_state();
   exit(EXIT_FAILURE);
 }
 
@@ -72,14 +145,6 @@ void do_after_inits() {
 
 void initialize(int *argc, char **argv) {
 
-  /* record system turbo state, to be restored in the signal handler*/
-  if (turbo::can_modify()) {
-    turbo::get_state();
-  } else {
-    std::cerr << "couldn't control turbo\n";
-  }
-  signal(SIGINT, handler);
-
   // have benchmark library consume some flags
   benchmark::Initialize(argc, argv);
 
@@ -100,6 +165,12 @@ void initialize(int *argc, char **argv) {
   // create logger
   sysbench::logging::init();
 
+  // record the system state and register handler for cleanup,
+  // then adjust the system for benchmarking
+  signal(SIGINT, handler);
+  record_system_state();
+  stabilize_system_state();
+
   numa::init();
 
   do_before_inits();
@@ -108,6 +179,8 @@ void initialize(int *argc, char **argv) {
 }
 
 void run() { benchmark::RunSpecifiedBenchmarks(); }
+
+void finalize() { restore_system_state(); }
 
 void RegisterInit(InitFn fn) {
   if (ninits >= sizeof(inits) / sizeof(inits[0])) {

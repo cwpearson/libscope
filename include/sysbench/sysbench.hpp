@@ -16,6 +16,7 @@
 #include "sysbench/cache.hpp"
 #include "sysbench/defer.hpp"
 #include "sysbench/flags.hpp"
+#include "sysbench/governor.hpp"
 #include "sysbench/init.hpp"
 #include "sysbench/logger.hpp"
 #include "sysbench/numa.hpp"

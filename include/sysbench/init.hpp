@@ -7,6 +7,7 @@ namespace sysbench{
 
 void initialize(int *argc, char **argv);
 void run();
+void finalize();
 
 // return non-zero if program should exit with that code
 typedef int (*InitFn)();
