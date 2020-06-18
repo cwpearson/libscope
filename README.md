@@ -1,8 +1,9 @@
 # sysbench
 
-A systems-oriented benchmark support library brining the following tools under one roof:
-* CUDA support (invluding nvToolsExt)
+A systems-oriented C++11 benchmark support library brining the following tools under one roof:
+* CUDA support (including nvToolsExt)
 * NUMA support
+* OpenMP support
 * CPU Cache Control (amd64 and ppc64le)
 * CPU turbo control (linux)
 * CPU governor control (amd64/linux and ppc64le/linux)
