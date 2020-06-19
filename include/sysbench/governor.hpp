@@ -44,10 +44,12 @@ Result get_state(State *state);
 */
 Result set_state(const State &state);
 
-/* save the current governor, to be used with restore()*/
+/* save the current governor, to be used with restore()
+*/
 Result record();
 
-/* restore the governor last captured with record()*/
+/* restore the governor last captured with record()
+*/
 Result restore();
 
 } // namespace turbo
