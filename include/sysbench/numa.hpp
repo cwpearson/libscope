@@ -22,9 +22,20 @@ If no NUMA support, return 1
 */
 int node_count();
 
-/* return the NUMA ids present in the system
+/* return the NUMA ids that contain CPUs on the system
  */
 std::vector<int> ids();
+std::vector<int> cpu_nodes();
+
+/* return the CPUs in `node`.
+   if no NUMA support, return all online CPUs
+*/
+std::vector<int> cpus_in_node(int node);
+
+/* return the CPUs in `nodes`
+  if no NUMA support, return the online CPUs
+*/
+std::vector<int> cpus_in_nodes(const std::vector<int> &nodes);
 
 /* bind to `node` while in scope. Release bind on destruction
 */

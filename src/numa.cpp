@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <set>
+#include <thread>
 
 #if SYSBENCH_USE_NUMA
 #include <numa.h>
@@ -7,6 +8,13 @@
 
 #include "sysbench/logger.hpp"
 #include "sysbench/numa.hpp"
+
+template<typename T>
+void sort_and_uniqify(std::vector<T> &v) {
+  std::sort(v.begin(), v.end());
+  auto it = std::unique(v.begin(), v.end());
+  v.resize(std::distance(v.begin(), it));
+}
 
 namespace numa {
 
@@ -78,6 +86,40 @@ std::vector<int> ids() {
   ret.push_back(0);
 #endif
   std::sort(ret.begin(), ret.end());
+  return ret;
+}
+
+std::vector<int> cpu_nodes() {
+  return ids();
+}
+
+std::vector<int> cpus_in_node(int node) {
+#if SYSBENCH_USE_NUMA
+  std::vector<int> ret;
+  for (int i = 0; i < numa_num_configured_cpus(); ++i) {
+    if (numa_node_of_cpu(i) == node) {
+      ret.push_back(i);
+    }
+  }
+  std::sort(ret.begin(), ret.end());
+  return ret;
+#else
+  (void) node;
+  std::vector<int> ret;
+  for (unsigned i = 0; i < std::thread::hardware_concurrency(); ++i) {
+    ret.push_back(i);
+  }
+  return ret;
+#endif
+}
+
+std::vector<int> cpus_in_nodes(const std::vector<int> &nodes) {
+  std::vector<int> ret;
+  for (auto &node : nodes) {
+    std::vector<int> cpus = cpus_in_node(node);
+    ret.insert(ret.end(), cpus.begin(), cpus.end());
+  }
+  sort_and_uniqify(ret);
   return ret;
 }
 
