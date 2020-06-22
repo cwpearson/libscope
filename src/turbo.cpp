@@ -6,7 +6,7 @@
 
 turbo::State global;
 
-turbo::State::State() : valid(false) {}
+turbo::State::State() : method(Method::NONE) {}
 
 bool can_read_write(const std::string &path) {
   FILE *file = fopen(path.c_str(), "wr");
@@ -15,6 +15,27 @@ bool can_read_write(const std::string &path) {
   }
   fclose(file);
   return true;
+}
+
+bool can_read(const std::string &path) {
+  FILE *file = fopen(path.c_str(), "r");
+  if (!file) {
+    return false;
+  }
+  fclose(file);
+  return true;
+}
+
+/* detect the available boost control methods on this system
+*/
+turbo::Method detect_method() {
+  if (can_read("/sys/devices/system/cpu/intel_pstate/no_turbo")) {
+    return turbo::Method::PSTATE;
+  }
+  if (can_read("/sys/devices/system/cpu/cpufreq/boost")) {
+    return turbo::Method::CPUFREQ;
+  }
+  return turbo::Method::NONE;
 }
 
 turbo::Result read_one_line(std::string &str, const std::string &path) {
@@ -94,68 +115,65 @@ turbo::Result read_acpi_cpufreq_boost(std::string &str) {
 namespace turbo {
 
 bool can_modify() {
-#ifdef __amd64__
-  return can_read_write("/sys/devices/system/cpu/intel_pstate/no_turbo");
-#elif __powerpc__
-  return can_read_write("/sys/devices/system/cpu/cpufreq/boost");
-#else
-  return false;
-#endif
+  return Method::NONE != detect_method();
 }
 
 Result enable() {
-#ifdef __amd64__
-  return write_intel_pstate_no_turbo("0");
-#elif __powerpc__
-  return write_acpi_cpufreq_boost("1");
-#else
-  return Result::NOT_SUPPORTED;
-#endif
+  Method method = detect_method();
+  if (Method::PSTATE == method) {
+    return write_intel_pstate_no_turbo("0");
+  } else if (Method::CPUFREQ == method) {
+    return write_acpi_cpufreq_boost("1");
+  } else {
+    return Result::NOT_SUPPORTED;
+  }
 }
 
 Result disable() {
-#ifdef __amd64__
-  return write_intel_pstate_no_turbo("1");
-#elif __powerpc__
-  return write_acpi_cpufreq_boost("0");
-#else
-  return Result::NOT_SUPPORTED;
-#endif
+  Method method = detect_method();
+  if (Method::PSTATE == method) {
+    return write_intel_pstate_no_turbo("1");
+  } else if (Method::CPUFREQ == method) {
+    return write_acpi_cpufreq_boost("0");
+  } else {
+    return Result::NOT_SUPPORTED;
+  }
 }
 
 Result get_state(State *state) {
-  state->valid = false;
-  std::string read;
+  state->method = detect_method();
   Result result;
-
-#ifdef __amd64__
-  result = read_intel_pstate_no_turbo(read);
-  if (result == Result::SUCCESS) {
-    state->enabled = ("0\n" == read);
-    state->valid = true;
-  }
-#elif __powerpc__
-  result = read_acpi_cpufreq_boost(read);
-  if (result == Result::SUCCESS) {
-    state->enabled = ("1\n" == read);
-    state->valid = true;
-  }
-#else
-  result = Result::UNKNOWN;
-#endif
+  
+  if (Method::PSTATE == state->method) {
+    std::string read;
+    result = read_intel_pstate_no_turbo(read);
+    if (result == Result::SUCCESS) {
+      state->enabled = ("0\n" == read);
+    }
+  } else if (Method::CPUFREQ== state->method) {
+    std::string read;
+    result = read_acpi_cpufreq_boost(read);
+    if (result == Result::SUCCESS) {
+      state->enabled = ("1\n" == read);
+    }
+  } else if (Method::NONE == state->method) {
+    result = Result::NOT_SUPPORTED;
+}
 
   return result;
 }
 
 Result set_state(const State &state) {
-  if (state.valid) {
+  if (Method::NONE != state.method) {
     if (state.enabled) {
       return enable();
     } else {
       return disable();
     }
+  } else {
+    // successfully did nothing
+    return Result::SUCCESS;
   }
-  return Result::SUCCESS;
 }
 
 const char *get_string(const Result &result) {
@@ -168,6 +186,19 @@ const char *get_string(const Result &result) {
     return "unsupported operation";
   case Result::UNKNOWN:
     return "unknown error";
+  default:
+    __builtin_unreachable();
+  }
+}
+
+const char *get_string(const Method &method) {
+  switch (method) {
+  case Method::NONE:
+    return "none";
+  case Method::CPUFREQ:
+    return "cpufreq";
+  case Method::PSTATE:
+    return "pstate";
   default:
     __builtin_unreachable();
   }

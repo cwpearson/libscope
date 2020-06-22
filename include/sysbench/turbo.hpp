@@ -3,13 +3,19 @@
 namespace turbo {
 
 enum class Result { NO_PERMISSION, NOT_SUPPORTED, SUCCESS, UNKNOWN };
+enum class Method {
+  NONE,
+  CPUFREQ,
+  PSTATE,
+};
 
 const char *get_string(const Result &result);
+const char *get_string(const Method &method);
 
 struct State {
   State();
-  bool valid;
   bool enabled;
+  Method method;
 };
 
 /* true if we are able to control the turbo state
