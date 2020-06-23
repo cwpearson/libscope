@@ -6,9 +6,11 @@ which g++
 which nvcc
 which cmake
 
-g++ --version
-nvcc --version
 cmake --version
+g++ --version
+if [[ $USE_CUDA != "0" ]]; then
+  nvcc --version
+fi
 
 mkdir build
 cd build
