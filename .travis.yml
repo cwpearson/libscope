@@ -1,0 +1,30 @@
+dist: bionic
+language: minimal
+
+# debug and release on amd64 and ppc64le
+arch:
+  - amd64
+  - ppc64le
+env:
+  - BUILD_TYPE=Debug
+  - BUILD_TYPE=Release
+
+# also build with various things disabled,
+# inheriting amd64
+jobs:
+  include:
+    - env: USE_CUDA=0 BUILD_TYPE=Debug
+    - env: USE_NUMA=0 BUILD_TYPE=Debug
+    - env: USE_NVTX=0 BUILD_TYPE=Debug
+    - env: USE_OPENMP=0 BUILD_TYPE=Debug
+
+cache:
+  directories:
+    $HOME/cmake
+
+install:
+  - ci/install.sh || travis_terminate 1;
+
+script:
+  - ci/build.sh || travis_terminate 1;
+  - ci/test.sh || travis_terminate 1;

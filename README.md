@@ -7,7 +7,9 @@ A systems-oriented C++11 benchmark support library brining the following tools u
 * CPU Cache Control (amd64 and ppc64le)
 * CPU turbo control (linux)
 * CPU governor control (amd64/linux and ppc64le/linux)
-* [Google's Benchmark library 1.5.1](https://github.com/google/benchmark)
+* [Google's Benchmark library](https://github.com/google/benchmark)
+* [Lyra CLI parsing library](https://github.com/bfgroup/Lyra)
+* [spdlog logging library](https://github.com/gabime/spdlog)
 
 This work was started at the University of Illinois with Professor Wen-Mei Hwu's IMPACT research group in collaboration with IBM's T. J. Watson Research as the SCOPE project.
 
