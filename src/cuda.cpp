@@ -1,6 +1,6 @@
 #include <numeric>
 
-#include "sysbench/cuda.hpp"
+#include "scope/cuda.hpp"
 
 cudaError_t cuda_reset_device(const int &id) {
   cudaError_t err = cudaSetDevice(id);

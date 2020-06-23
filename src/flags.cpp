@@ -1,8 +1,8 @@
 #include "lyra/lyra.hpp"
 
-#include "sysbench/flags.hpp"
+#include "scope/flags.hpp"
 
-namespace sysbench {
+namespace scope {
 
 
 lyra::cli_parser cli;
@@ -38,4 +38,4 @@ void add_flags() {
 }
 
 
-} // namespace sysbench
+} // namespace scope

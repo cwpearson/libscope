@@ -2,12 +2,12 @@
 #include <set>
 #include <thread>
 
-#if SYSBENCH_USE_NUMA
+#if SCOPE_USE_NUMA
 #include <numa.h>
 #endif
 
-#include "sysbench/logger.hpp"
-#include "sysbench/numa.hpp"
+#include "scope/logger.hpp"
+#include "scope/numa.hpp"
 
 template<typename T>
 void sort_and_uniqify(std::vector<T> &v) {
@@ -23,7 +23,7 @@ void init() {
     return;
   }
 
-#if SYSBENCH_USE_NUMA == 1
+#if SCOPE_USE_NUMA == 1
   numa_set_strict(1);
   LOG(debug, "set numa_set_strict(1)");
   numa_set_bind_policy(1);
@@ -37,7 +37,7 @@ void init() {
 }
 
 bool available() {
-#if SYSBENCH_USE_NUMA == 1
+#if SCOPE_USE_NUMA == 1
   return -1 != numa_available();
 #else
   return false;
@@ -46,7 +46,7 @@ bool available() {
 
 void bind_node(const int node) {
 
-#if SYSBENCH_USE_NUMA == 1
+#if SCOPE_USE_NUMA == 1
   if (-1 == node) {
     numa_bind(numa_all_nodes_ptr);
   } else if (node >= 0) {
@@ -67,7 +67,7 @@ int node_count() { return ids().size(); }
 
 std::vector<int> ids() {
   std::vector<int> ret;
-#if SYSBENCH_USE_NUMA
+#if SCOPE_USE_NUMA
 
   /* we could query numa_bitmask_isbitset for numa_num_possible_nodes(),
   but we only care about NUMA nodes that also have CPUs in them.
@@ -94,7 +94,7 @@ std::vector<int> cpu_nodes() {
 }
 
 std::vector<int> cpus_in_node(int node) {
-#if SYSBENCH_USE_NUMA
+#if SCOPE_USE_NUMA
   std::vector<int> ret;
   for (int i = 0; i < numa_num_configured_cpus(); ++i) {
     if (numa_node_of_cpu(i) == node) {

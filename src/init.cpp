@@ -6,12 +6,12 @@
 #include "benchmark/benchmark.h"
 #include "lyra/lyra.hpp"
 
-#include "sysbench/flags.hpp"
-#include "sysbench/governor.hpp"
-#include "sysbench/init.hpp"
-#include "sysbench/logger.hpp"
-#include "sysbench/numa.hpp"
-#include "sysbench/turbo.hpp"
+#include "scope/flags.hpp"
+#include "scope/governor.hpp"
+#include "scope/init.hpp"
+#include "scope/logger.hpp"
+#include "scope/numa.hpp"
+#include "scope/turbo.hpp"
 
 /* record the state of the system so we can restore when we exit
  */
@@ -95,7 +95,7 @@ void handler(int sig) {
   exit(EXIT_FAILURE);
 }
 
-namespace sysbench {
+namespace scope {
 
 typedef struct {
   AfterInitFn fn;
@@ -148,22 +148,22 @@ void initialize(int *argc, char **argv) {
   // have benchmark library consume some flags
   benchmark::Initialize(argc, argv);
 
-  sysbench::add_flags();
-  sysbench::parse(argc, argv);
+  scope::add_flags();
+  scope::parse(argc, argv);
 
-  if (sysbench::flags::parseError) {
+  if (scope::flags::parseError) {
     std::cerr << "Error in command line: " << flags::parseErrorMessage
               << std::endl;
-    sysbench::show_help(std::cerr);
+    scope::show_help(std::cerr);
     exit(EXIT_FAILURE);
   }
-  if (sysbench::flags::showHelp) {
-    sysbench::show_help(std::cout);
+  if (scope::flags::showHelp) {
+    scope::show_help(std::cout);
     exit(EXIT_SUCCESS);
   }
 
   // create logger
-  sysbench::logging::init();
+  scope::logging::init();
 
   // record the system state and register handler for cleanup,
   // then adjust the system for benchmarking
@@ -211,4 +211,4 @@ void RegisterVersionString(const std::string &s) {
   version_strings.push_back(s);
 }
 
-} // namespace sysbench
+} // namespace scope

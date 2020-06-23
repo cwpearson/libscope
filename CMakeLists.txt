@@ -1,14 +1,14 @@
 # 3.17 for FindCUDAToolkit
 cmake_minimum_required(VERSION 3.17 FATAL_ERROR)
 
-project(sysbench LANGUAGES CXX VERSION 0.1.0)
+project(SCOPE LANGUAGES CXX VERSION 0.1.0)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
 
-option(SYSBENCH_USE_NUMA ON)
-option(SYSBENCH_USE_NVTX ON)
-option(SYSBENCH_USE_OPENMP ON)
-option(SYSBENCH_USE_CUDA ON)
+option(SCOPE_USE_NUMA ON)
+option(SCOPE_USE_NVTX ON)
+option(SCOPE_USE_OPENMP ON)
+option(SCOPE_USE_CUDA ON)
 
 # link libraries but make the includes system includes to suppress warnings
 # https://stackoverflow.com/questions/52135983/cmake-target-link-libraries-include-as-system-to-suppress-compiler-warnings
@@ -23,11 +23,11 @@ endfunction(target_link_libraries_system)
 
 # Get the git version
 include(Git)
-git_get_head_revision(SYSBENCH_GIT_REFSPEC SYSBENCH_GIT_HASH)
-git_local_changes(SYSBENCH_GIT_LOCAL_CHANGES)
-message(STATUS SYSBENCH_GIT_REFSPEC=${SYSBENCH_GIT_REFSPEC})
-message(STATUS SYSBENCH_GIT_HASH=${SYSBENCH_GIT_HASH})
-message(STATUS SYSBENCH_GIT_LOCAL_CHANGES=${SYSBENCH_GIT_LOCAL_CHANGES})
+git_get_head_revision(SCOPE_GIT_REFSPEC SCOPE_GIT_HASH)
+git_local_changes(SCOPE_GIT_LOCAL_CHANGES)
+message(STATUS SCOPE_GIT_REFSPEC=${SCOPE_GIT_REFSPEC})
+message(STATUS SCOPE_GIT_HASH=${SCOPE_GIT_HASH})
+message(STATUS SCOPE_GIT_LOCAL_CHANGES=${SCOPE_GIT_LOCAL_CHANGES})
 
 # add Google Benchmark
 set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "blah") # remove dep on gtest
@@ -44,23 +44,23 @@ add_subdirectory(thirdparty/Lyra)
 
 add_subdirectory(src)
 
-add_library(sysbench
-  ${SYSBENCH_SOURCES}
+add_library(scope
+  ${SCOPE_SOURCES}
 )
 
 # if we are included in another project with add_subdirectory(), mark our includes as system includes
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
-  target_include_directories(sysbench PUBLIC
+  target_include_directories(scope PUBLIC
     include
   )
 else()
-  target_include_directories(sysbench SYSTEM PUBLIC
+  target_include_directories(scope SYSTEM PUBLIC
     include
   )
 endif()
 
 
-target_compile_options(sysbench PRIVATE
+target_compile_options(scope PRIVATE
     -Wall 
     -Wextra 
     -Wcast-qual 
@@ -81,14 +81,14 @@ target_compile_options(sysbench PRIVATE
 # Generate version file
 message(STATUS "${PROJECT_SOURCE_DIR}/.../config.hpp.in -> ${PROJECT_BINARY_DIR}/.../config.hpp")
 configure_file (
-    "${PROJECT_SOURCE_DIR}/include/sysbench/config.hpp.in"
-    "${PROJECT_BINARY_DIR}/include/sysbench/config.hpp"
+    "${PROJECT_SOURCE_DIR}/include/scope/config.hpp.in"
+    "${PROJECT_BINARY_DIR}/include/scope/config.hpp"
 )
-target_include_directories(sysbench PUBLIC ${PROJECT_BINARY_DIR}/include/)
+target_include_directories(scope PUBLIC ${PROJECT_BINARY_DIR}/include/)
 
 # enable CUDA if desired and available
 include(CheckLanguage)
-if(SYSBENCH_USE_CUDA)
+if(SCOPE_USE_CUDA)
   check_language(CUDA)
   if(CMAKE_CUDA_COMPILER)
     enable_language(CUDA)
@@ -100,51 +100,51 @@ endif()
 # check which languages are enabled
 get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
 
-# Request that sysbench be built with -std=c++11
+# Request that scope be built with -std=c++11
 # As this is a public compile feature anything that links to
-# sysbench will also build with -std=c++11
-target_compile_features(sysbench PUBLIC cxx_std_11)
+# scope will also build with -std=c++11
+target_compile_features(scope PUBLIC cxx_std_11)
 if("CUDA" IN_LIST languages)
-  set_property(TARGET sysbench PROPERTY CUDA_STANDARD 11)
+  set_property(TARGET scope PROPERTY CUDA_STANDARD 11)
 endif()
 
 # Link against libraries
-target_link_libraries_system(sysbench benchmark::benchmark)
-target_link_libraries_system(sysbench spdlog::spdlog)
-target_link_libraries_system(sysbench BFG::Lyra)
+target_link_libraries_system(scope benchmark::benchmark)
+target_link_libraries_system(scope spdlog::spdlog)
+target_link_libraries_system(scope BFG::Lyra)
 
 if("CUDA" IN_LIST languages)
     ## CUDA Toolkit
     find_package(CUDAToolkit REQUIRED)
-    target_link_libraries(sysbench PUBLIC CUDA::cudart)
-    message(STATUS "CUDA found, compiling with -DSYSBENCH_USE_CUDA=1")
-    target_compile_definitions(sysbench PUBLIC -DSYSBENCH_USE_CUDA=1)
+    target_link_libraries(scope PUBLIC CUDA::cudart)
+    message(STATUS "CUDA found, compiling with -DSCOPE_USE_CUDA=1")
+    target_compile_definitions(scope PUBLIC -DSCOPE_USE_CUDA=1)
 else()
-    target_compile_definitions(sysbench PUBLIC -DSYSBENCH_USE_CUDA=0)
+    target_compile_definitions(scope PUBLIC -DSCOPE_USE_CUDA=0)
 endif()
     
 
 ## NUMA
-if (SYSBENCH_USE_NUMA)
+if (SCOPE_USE_NUMA)
   find_package(NUMA)
   if(NUMA_FOUND)
       message(STATUS "Found NUMA: " ${NUMA_INCLUDE_DIR}, ${NUMA_LIBRARY})
-      target_compile_definitions(sysbench PUBLIC -DSYSBENCH_USE_NUMA=1)
-      target_link_libraries(sysbench PUBLIC ${NUMA_LIBRARY})
-      target_include_directories(sysbench SYSTEM PUBLIC ${NUMA_INCLUDE_DIR})
+      target_compile_definitions(scope PUBLIC -DSCOPE_USE_NUMA=1)
+      target_link_libraries(scope PUBLIC ${NUMA_LIBRARY})
+      target_include_directories(scope SYSTEM PUBLIC ${NUMA_INCLUDE_DIR})
   else()
-    target_compile_definitions(sysbench PUBLIC -DSYSBENCH_USE_NUMA=0)
+    target_compile_definitions(scope PUBLIC -DSCOPE_USE_NUMA=0)
     message(WARNING "didn't find NUMA, some benchmarks will be unavailable.")
   endif(NUMA_FOUND)
 else()
-  target_compile_definitions(sysbench PUBLIC -DSYSBENCH_USE_NUMA=0)
-endif(SYSBENCH_USE_NUMA)
+  target_compile_definitions(scope PUBLIC -DSCOPE_USE_NUMA=0)
+endif(SCOPE_USE_NUMA)
 
 ## OpenMP
-if(SYSBENCH_USE_OPENMP)
+if(SCOPE_USE_OPENMP)
   find_package(OpenMP REQUIRED)
   if (OpenMP_FOUND)
-    target_link_libraries(sysbench PUBLIC ${OpenMP_CXX_LIBRARIES})
+    target_link_libraries(scope PUBLIC ${OpenMP_CXX_LIBRARIES})
     if (OpenMP_C_FLAGS)
       string(REPLACE ";" " " OpenMP_C_FLAGS ${OpenMP_C_FLAGS})
     endif()
@@ -153,13 +153,13 @@ if(SYSBENCH_USE_OPENMP)
     endif()
 
     ## C++ flags
-    target_compile_options(sysbench PUBLIC
+    target_compile_options(scope PUBLIC
       $<$<COMPILE_LANGUAGE:CXX>:${OpenMP_CXX_FLAGS}>
     )
 
     # CUDA flags
     foreach(flag IN ITEMS ${OpenMP_CXX_FLAGS})
-      target_compile_options( sysbench PUBLIC
+      target_compile_options( scope PUBLIC
         $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=${flag};>
       )
     endforeach(flag)
@@ -169,15 +169,15 @@ if(SYSBENCH_USE_OPENMP)
     add_definitions(-DUSE_OPENMP=0)
     message(WARNING "didn't find OpenMP, some benchmarks will be unavailable.")
   endif(OpenMP_FOUND)
-endif(SYSBENCH_USE_OPENMP)
+endif(SCOPE_USE_OPENMP)
 
 ## NVTX
-if(SYSBENCH_USE_NVTX AND "CUDA" IN_LIST languages)
-  target_link_libraries(sysbench PUBLIC CUDA::nvToolsExt)
-  target_compile_definitions(sysbench PUBLIC -DSYSBENCH_USE_NVTX=1)
+if(SCOPE_USE_NVTX AND "CUDA" IN_LIST languages)
+  target_link_libraries(scope PUBLIC CUDA::nvToolsExt)
+  target_compile_definitions(scope PUBLIC -DSCOPE_USE_NVTX=1)
 else()
-  target_compile_definitions(sysbench PUBLIC -DSYSBENCH_USE_NVTX=0)
+  target_compile_definitions(scope PUBLIC -DSCOPE_USE_NVTX=0)
 endif()
 
-add_library(sysbench::sysbench ALIAS sysbench)
+add_library(scope::scope ALIAS scope)
 

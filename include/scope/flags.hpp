@@ -6,7 +6,7 @@
 #include <ostream>
 #include <string>
 
-namespace sysbench {
+namespace scope {
 
 namespace flags {
 extern bool showHelp; // help was requested on the cli
@@ -14,15 +14,15 @@ extern bool parseError; // a cli parse error occured
 extern std::string parseErrorMessage; // a description of a cli parse error
 }
 
-/* add the sysbench flags to the parser
+/* add the scope flags to the parser
 */
 void add_flags();
 
-/* parse the sysbench flags
+/* parse the scope flags
 */
 void parse(int *argc, char **argv);
 
-/* show a description of the sysbench flags
+/* show a description of the scope flags
 */
 void show_help(std::ostream &os);
-} // namespace sysbench
+} // namespace scope

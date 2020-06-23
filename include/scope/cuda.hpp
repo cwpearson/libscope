@@ -4,7 +4,7 @@
 
 #include <cuda_runtime.h>
 
-#include "sysbench/error.hpp"
+#include "scope/error.hpp"
 
 /* return the unique CUDA device IDs present on the system
  */

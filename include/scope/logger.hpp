@@ -2,7 +2,7 @@
 
 #include <spdlog/spdlog.h>
 
-namespace sysbench {
+namespace scope {
   namespace logger {
     extern std::shared_ptr<spdlog::logger> console;
 } // namespace logger
@@ -12,6 +12,6 @@ namespace logging {
   void init();
 }
 
-} // namespace sysbench
+} // namespace scope
 
-#define LOG(level, ...) sysbench::logger::console->level(__VA_ARGS__)
+#define LOG(level, ...) scope::logger::console->level(__VA_ARGS__)

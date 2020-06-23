@@ -3,8 +3,8 @@
 #include <iostream>
 #include <string>
 
-#include "sysbench/error.hpp"
-#include "sysbench/logger.hpp"
+#include "scope/error.hpp"
+#include "scope/logger.hpp"
 
 
   template <typename T>

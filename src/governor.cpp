@@ -1,4 +1,4 @@
-#include "sysbench/governor.hpp"
+#include "scope/governor.hpp"
 
 #include <cassert>
 #include <cerrno>

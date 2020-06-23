@@ -4,7 +4,7 @@
 
 namespace numa {
 
-/* to be called during sysbench init
+/* to be called during scope init
 */
 void init();
 

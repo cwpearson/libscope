@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace sysbench{ 
+namespace scope{ 
 
 
 void initialize(int *argc, char **argv);
@@ -42,17 +42,17 @@ struct BeforeInitRegisterer {
   }
 };
 
-} // namespace sysbench
+} // namespace scope
 
-#define SYSBENCH_REGISTER_BEFORE_INIT(x) static BeforeInitRegisterer _r_before_init_##x(x);
+#define SCOPE_REGISTER_BEFORE_INIT(x) static BeforeInitRegisterer _r_before_init_##x(x);
 
-#define SYSBENCH_REGISTER_INIT(x) static InitRegisterer _r_init_##x(x);
+#define SCOPE_REGISTER_INIT(x) static InitRegisterer _r_init_##x(x);
 
-#define SYSBENCH_CONCAT(a, b) SYSBENCH_CONCAT2(a, b)
-#define SYSBENCH_CONCAT2(a, b) a##b
-#define AFTER_INIT_FN_NAME(x) SYSBENCH_CONCAT(_after_init_, __LINE__)
+#define SCOPE_CONCAT(a, b) SCOPE_CONCAT2(a, b)
+#define SCOPE_CONCAT2(a, b) a##b
+#define AFTER_INIT_FN_NAME(x) SCOPE_CONCAT(_after_init_, __LINE__)
 
-#define SYSBENCH_AFTER_INIT(x, name) \
-  static sysbench::AfterInitFn AFTER_INIT_FN_NAME(x) = sysbench::RegisterAfterInit(x, name);
+#define SCOPE_AFTER_INIT(x, name) \
+  static scope::AfterInitFn AFTER_INIT_FN_NAME(x) = scope::RegisterAfterInit(x, name);
 
 
