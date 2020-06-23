@@ -2,9 +2,11 @@ set -x -e
 
 source ci/env.sh
 
-which g++
-which nvcc
 which cmake
+which g++
+if [[ $USE_CUDA != "0" ]]; then
+  which nvcc
+fi
 
 cmake --version
 g++ --version
