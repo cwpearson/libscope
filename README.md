@@ -181,7 +181,7 @@ void flush_all(void *p, const size_t n);
 
 ## Changelog
 
-* v0.1.0
+* v1.0.0
   * Initial port from `c3sr/scope`
   * CPU governor API
   * CPU turbo API
