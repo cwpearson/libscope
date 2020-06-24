@@ -92,7 +92,7 @@ void handler(int sig) {
   // unregister the handler
   signal(sig, SIG_DFL);
   restore_system_state();
-  exit(EXIT_FAILURE);
+  raise(sig);
 }
 
 namespace scope {
