@@ -24,8 +24,8 @@ int node_count();
 
 /* return the NUMA ids that contain CPUs on the system
  */
-std::vector<int> ids();
-std::vector<int> cpu_nodes();
+const std::vector<int> &ids();
+const std::vector<int> &cpu_nodes();
 
 /* return the CPUs in `node`.
    if no NUMA support, return all online CPUs

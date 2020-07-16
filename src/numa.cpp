@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <map>
 #include <set>
 #include <thread>
 
@@ -9,8 +10,7 @@
 #include "scope/logger.hpp"
 #include "scope/numa.hpp"
 
-template<typename T>
-void sort_and_uniqify(std::vector<T> &v) {
+template <typename T> void sort_and_uniqify(std::vector<T> &v) {
   std::sort(v.begin(), v.end());
   auto it = std::unique(v.begin(), v.end());
   v.resize(std::distance(v.begin(), it));
@@ -18,11 +18,46 @@ void sort_and_uniqify(std::vector<T> &v) {
 
 namespace numa {
 
+namespace detail {
+
+/* cache of node -> cpus
+*/
+std::map<int, std::vector<int>> CPUsInNode;
+/* all nodes with CPUs
+*/
+std::vector<int> nodesWithCPUs;
+
+} // namespace detail
+
 void init() {
+
+  /* cache which nodes have CPUs
+  */
+#if SCOPE_USE_NUMA
+  for (int i = 0; i < numa_num_configured_cpus(); ++i) {
+    int node = numa_node_of_cpu(i);
+    detail::CPUsInNode[node].push_back(i);
+    detail::nodesWithCPUs.push_back(node);
+  }
+  for (auto &kv : detail::CPUsInNode) {
+    std::vector<int> &cpus = kv.second;
+    sort_and_uniqify(cpus);
+  }
+  sort_and_uniqify(detail::nodesWithCPUs);
+#else
+  (void)node;
+  for (unsigned i = 0; i < std::thread::hardware_concurrency(); ++i) {
+    detail::CPUsInNode[0].push_back(i);
+  }
+  detail::nodesWithCPUs = {0};
+#endif
+
   if (!available()) {
     return;
   }
 
+/* if NUMA is real, then make sure we get what we ask for
+*/
 #if SCOPE_USE_NUMA == 1
   numa_set_strict(1);
   LOG(debug, "set numa_set_strict(1)");
@@ -65,52 +100,16 @@ void bind_node(const int node) {
 
 int node_count() { return ids().size(); }
 
-std::vector<int> ids() {
-  std::vector<int> ret;
-#if SCOPE_USE_NUMA
+const std::vector<int> &ids() { return detail::nodesWithCPUs; }
 
-  /* we could query numa_bitmask_isbitset for numa_num_possible_nodes(),
-  but we only care about NUMA nodes that also have CPUs in them.
-  */
-
-  // discover available nodes
-  std::set<int> available_nodes;
-  for (int i = 0; i < numa_num_configured_cpus(); ++i) {
-    available_nodes.insert(numa_node_of_cpu(i));
-  }
-  for (auto node : available_nodes) {
-    ret.push_back(node);
-  }
-
-#else
-  ret.push_back(0);
-#endif
-  std::sort(ret.begin(), ret.end());
-  return ret;
-}
-
-std::vector<int> cpu_nodes() {
-  return ids();
-}
+const std::vector<int> &cpu_nodes() { return ids(); }
 
 std::vector<int> cpus_in_node(int node) {
-#if SCOPE_USE_NUMA
-  std::vector<int> ret;
-  for (int i = 0; i < numa_num_configured_cpus(); ++i) {
-    if (numa_node_of_cpu(i) == node) {
-      ret.push_back(i);
-    }
+  if (detail::CPUsInNode.count(node)) {
+    return detail::CPUsInNode[node];
+  } else {
+    return {};
   }
-  std::sort(ret.begin(), ret.end());
-  return ret;
-#else
-  (void) node;
-  std::vector<int> ret;
-  for (unsigned i = 0; i < std::thread::hardware_concurrency(); ++i) {
-    ret.push_back(i);
-  }
-  return ret;
-#endif
 }
 
 std::vector<int> cpus_in_nodes(const std::vector<int> &nodes) {
