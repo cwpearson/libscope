@@ -29,5 +29,6 @@ const std::vector<int> unique_cuda_device_ids() {
         ret.push_back(id);
       }
     }
+    return ret;
   }
 }
