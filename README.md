@@ -188,6 +188,10 @@ void flush_all(void *p, const size_t n);
 
 ## Changelog
 
+* v1.1.0 (July 17, 2020)
+  * Re-raise INT, HUP, and KILL signals after cleanup
+  * add `--cuda` and `--numa` flags
+  * Cache NUMA configuration to improve benchmark registration performance
 * v1.0.0
   * Initial port from `c3sr/scope`
   * CPU governor API
