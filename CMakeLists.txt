@@ -78,6 +78,13 @@ target_compile_options(scope PRIVATE
     -Wfatal-errors
   )
 
+# disable GCC notes
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+target_compile_options(scope PUBLIC
+    -fcompare-debug-second 
+  )
+endif()
+
 # Generate version file
 message(STATUS "${PROJECT_SOURCE_DIR}/.../config.hpp.in -> ${PROJECT_BINARY_DIR}/.../config.hpp")
 configure_file (
