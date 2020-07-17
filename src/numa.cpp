@@ -53,13 +53,11 @@ void init() {
   }
   sort_and_uniqify(detail::nodesWithCPUs);
 #else
-  (void)node;
   if (!scope::flags::visibleNUMAs.empty()) {
     LOG(critical, "NUMA visibility set with --numa, but scope not compiled "
                   "with NUMA support");
     scope::safe_exit(EXIT_FAILURE);
   }
-
   for (unsigned i = 0; i < std::thread::hardware_concurrency(); ++i) {
     detail::CPUsInNode[0].push_back(i);
   }
