@@ -81,7 +81,14 @@ target_compile_options(scope PRIVATE
 # disable GCC notes
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 target_compile_options(scope PUBLIC
+$<$<COMPILE_LANGUAGE:CUDA>:
+    -Xcompiler=-fcompare-debug-second 
+>
+  )
+target_compile_options(scope PUBLIC
+$<$<COMPILE_LANGUAGE:CXX>:
     -fcompare-debug-second 
+>
   )
 endif()
 
