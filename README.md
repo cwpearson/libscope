@@ -188,6 +188,8 @@ void flush_all(void *p, const size_t n);
 
 ## Changelog
 
+* v1.1.1 (July 17, 2020)
+  * fix a bug in getting available CUDA devices
 * v1.1.0 (July 17, 2020)
   * Re-raise INT, HUP, and KILL signals after cleanup
   * add `--cuda` and `--numa` flags
