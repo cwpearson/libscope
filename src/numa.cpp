@@ -7,6 +7,8 @@
 #include <numa.h>
 #endif
 
+#include "scope/flags.hpp"
+#include "scope/init.hpp"
 #include "scope/logger.hpp"
 #include "scope/numa.hpp"
 
@@ -21,10 +23,10 @@ namespace numa {
 namespace detail {
 
 /* cache of node -> cpus
-*/
+ */
 std::map<int, std::vector<int>> CPUsInNode;
 /* all nodes with CPUs
-*/
+ */
 std::vector<int> nodesWithCPUs;
 
 } // namespace detail
@@ -32,12 +34,18 @@ std::vector<int> nodesWithCPUs;
 void init() {
 
   /* cache which nodes have CPUs
-  */
+   */
 #if SCOPE_USE_NUMA
   for (int i = 0; i < numa_num_configured_cpus(); ++i) {
     int node = numa_node_of_cpu(i);
-    detail::CPUsInNode[node].push_back(i);
-    detail::nodesWithCPUs.push_back(node);
+
+    if (!scope::flags::visibleNUMAs.empty() &&
+        (scope::flags::visibleNUMAs.end() !=
+         std::find(scope::flags::visibleNUMAs.begin(),
+                   scope::flags::visibleNUMAs.end(), node))) {
+      detail::CPUsInNode[node].push_back(i);
+      detail::nodesWithCPUs.push_back(node);
+    }
   }
   for (auto &kv : detail::CPUsInNode) {
     std::vector<int> &cpus = kv.second;
@@ -46,6 +54,12 @@ void init() {
   sort_and_uniqify(detail::nodesWithCPUs);
 #else
   (void)node;
+  if (!scope::flags::visibleNUMAs.empty()) {
+    LOG(critical, "NUMA visibility set with --numa, but scope not compiled "
+                  "with NUMA support");
+    scope::safe_exit(EXIT_FAILURE);
+  }
+
   for (unsigned i = 0; i < std::thread::hardware_concurrency(); ++i) {
     detail::CPUsInNode[0].push_back(i);
   }
@@ -53,11 +67,15 @@ void init() {
 #endif
 
   if (!available()) {
+    if (!scope::flags::visibleNUMAs.empty()) {
+      LOG(critical, "NUMA visibility set with --numa, but NUMA not available");
+      scope::safe_exit(EXIT_FAILURE);
+    }
     return;
   }
 
 /* if NUMA is real, then make sure we get what we ask for
-*/
+ */
 #if SCOPE_USE_NUMA == 1
   numa_set_strict(1);
   LOG(debug, "set numa_set_strict(1)");
@@ -91,7 +109,7 @@ void bind_node(const int node) {
     numa_free_nodemask(nodemask);
   } else {
     LOG(critical, "expected node >= -1");
-    exit(1);
+    scope::safe_exit(EXIT_FAILURE);
   }
 #else
   (void)node;

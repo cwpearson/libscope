@@ -45,6 +45,13 @@ Scope includes it built in and supports all google benchmark command line flags.
 
 ## How To
 
+### Command Line Flags
+
+All Scope applications support the following command line options:
+
+* `--cuda <device ID>`: add GPU visibility (default: all). May be repeated to add more GPUs.
+* `--numa <node ID>`: add NUMA visibility (default: all). May be repeated to add more NUMA nodes.
+
 ### CPU turbo (`scope/turbo.hpp`)
 
 `scope::init()` will record the CPU's current turbo state, and attempt to disable it, if it is executed with sufficient permissions (sudo).

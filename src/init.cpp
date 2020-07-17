@@ -89,7 +89,7 @@ void stabilize_system_state() {
 /* on SIGINT, we need to restore the system state
  */
 void handler(int sig) {
-  // unregister the handler
+  // unregister the handler in case there is a second signal
   signal(sig, SIG_DFL);
   restore_system_state();
   raise(sig);
@@ -128,7 +128,7 @@ void do_inits() {
     LOG(debug, "Running init function {}", i);
     int status = inits[i].fn();
     if (status) {
-      exit(status);
+      safe_exit(status);
     }
   }
 }
@@ -146,6 +146,8 @@ void do_after_inits() {
 void initialize(int *argc, char **argv) {
 
   // have benchmark library consume some flags
+  /* TODO: this consumes the --help flag
+     could remove the flag and restore it later? */
   benchmark::Initialize(argc, argv);
 
   scope::add_flags();
@@ -162,12 +164,16 @@ void initialize(int *argc, char **argv) {
     exit(EXIT_SUCCESS);
   }
 
-  // create logger
+  /* create a logger after parsing flags, since flags may change the logger created
+     but before doing anything else, so we can log everything else we're doing
+  */
   scope::logging::init();
 
   // record the system state and register handler for cleanup,
   // then adjust the system for benchmarking
   signal(SIGINT, handler);
+  signal(SIGHUP, handler);
+  signal(SIGKILL, handler);
   record_system_state();
   stabilize_system_state();
 
@@ -181,6 +187,11 @@ void initialize(int *argc, char **argv) {
 void run() { benchmark::RunSpecifiedBenchmarks(); }
 
 void finalize() { restore_system_state(); }
+
+void safe_exit(int code) {
+  finalize();
+  exit(code);
+}
 
 void RegisterInit(InitFn fn) {
   if (ninits >= sizeof(inits) / sizeof(inits[0])) {

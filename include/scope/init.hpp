@@ -9,6 +9,11 @@ void initialize(int *argc, char **argv);
 void run();
 void finalize();
 
+/* finalizes, then exits with `code`
+   should be used instead of exit() after stabilize_system_state() is called
+*/
+void safe_exit(int code);
+
 // return non-zero if program should exit with that code
 typedef int (*InitFn)();
 
