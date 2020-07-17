@@ -39,7 +39,7 @@ void init() {
   for (int i = 0; i < numa_num_configured_cpus(); ++i) {
     int node = numa_node_of_cpu(i);
 
-    if (!scope::flags::visibleNUMAs.empty() &&
+    if (scope::flags::visibleNUMAs.empty() ||
         (scope::flags::visibleNUMAs.end() !=
          std::find(scope::flags::visibleNUMAs.begin(),
                    scope::flags::visibleNUMAs.end(), node))) {
