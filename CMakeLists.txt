@@ -120,6 +120,7 @@ get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
 target_compile_features(scope PUBLIC cxx_std_11)
 if("CUDA" IN_LIST languages)
   set_property(TARGET scope PROPERTY CUDA_STANDARD 11)
+  set_property(TARGET scope PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 endif()
 
 # Link against libraries

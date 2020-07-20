@@ -1,0 +1,3 @@
+#pragma once
+
+template<typename T> __device__ void do_not_optimize(const T& t);

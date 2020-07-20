@@ -8,6 +8,11 @@
 
 #if SCOPE_USE_CUDA == 1
 #include "scope/cuda.hpp"
+
+#if __CUDACC__
+#include "scope/do_not_optimize.hu"
+#endif // __CUDACC__
+
 #endif // SCOPE_USE_CUDA == 1
 
 #include "scope/barrier.hpp"

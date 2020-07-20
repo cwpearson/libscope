@@ -11,6 +11,7 @@ set(SCOPE_SOURCES ${SCOPE_SOURCES}
 if (SCOPE_USE_CUDA)
   set(SCOPE_SOURCES ${SCOPE_SOURCES}
     ${CMAKE_CURRENT_LIST_DIR}/cuda.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/do_not_optimize.cu
   )
 endif()
 
