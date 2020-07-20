@@ -59,25 +59,46 @@ else()
   )
 endif()
 
-
+# CXX flags
 target_compile_options(scope PRIVATE
-    -Wall 
-    -Wextra 
-    -Wcast-qual 
-    -Wcast-align 
-    -Wstrict-aliasing 
-    -Wpointer-arith 
-    -Winit-self 
-    -Wshadow 
-    -Wswitch-enum 
-    -Wredundant-decls 
-    -Wfloat-equal 
-    -Wundef 
-    -Wvla
-    -fmax-errors=1 
-    -Wfatal-errors
+$<$<COMPILE_LANGUAGE:CXX>:
+    -Wall; 
+    -Wextra;
+    -Wcast-qual;
+    -Wcast-align;
+    -Wstrict-aliasing;
+    -Wpointer-arith;
+    -Winit-self;
+    -Wshadow;
+    -Wswitch-enum;
+    -Wredundant-decls;
+    -Wfloat-equal;
+    -Wundef;
+    -Wvla;
+    -fmax-errors=1;
+    -Wfatal-errors;
+>
   )
 
+# CUDA flags
+target_compile_options(scope PRIVATE
+$<$<COMPILE_LANGUAGE:CUDA>:
+    -lineinfo;
+    -Xcompiler=-Wall; 
+    -Xcompiler=-Wextra;
+    -Xcompiler=-Wcast-qual;
+    -Xcompiler=-Wcast-align;
+    -Xcompiler=-Wstrict-aliasing;
+    -Xcompiler=-Wpointer-arith;
+    -Xcompiler=-Winit-self;
+    -Xcompiler=-Wshadow;
+    -Xcompiler=-Wswitch-enum;
+    -Xcompiler=-Wfloat-equal;
+    -Xcompiler=-Wvla;
+    -Xcompiler=-fmax-errors=1;
+    -Xcompiler=-Wfatal-errors;
+>
+)
 # disable GCC notes
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 target_compile_options(scope PUBLIC
