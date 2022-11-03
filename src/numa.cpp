@@ -2,6 +2,7 @@
 #include <map>
 #include <set>
 #include <thread>
+#include <iostream>
 
 #if SCOPE_USE_NUMA
 #include <numa.h>
@@ -25,9 +26,15 @@ namespace detail {
 /* cache of node -> cpus
  */
 std::map<int, std::vector<int>> CPUsInNode;
+
+/* cache of node -> memory */
+std::map<int, std::vector<int>> memoriesInNode;
+
 /* all nodes with CPUs
  */
 std::vector<int> nodesWithCPUs;
+
+std::vector<int> nodes;
 
 } // namespace detail
 
@@ -36,9 +43,15 @@ void init() {
   /* cache which nodes have CPUs
    */
 #if SCOPE_USE_NUMA
+
+  for (int i = 0; i < numa_max_possible_node(); ++i) {
+    if (numa_bitmask_isbitset(numa_all_nodes_ptr, i)) {
+      detail::nodes.push_back(i);
+    }
+  }
+
   for (int i = 0; i < numa_num_configured_cpus(); ++i) {
     int node = numa_node_of_cpu(i);
-
     if (scope::flags::visibleNUMAs.empty() ||
         (scope::flags::visibleNUMAs.end() !=
          std::find(scope::flags::visibleNUMAs.begin(),
@@ -119,6 +132,8 @@ int node_count() { return ids().size(); }
 const std::vector<int> &ids() { return detail::nodesWithCPUs; }
 
 const std::vector<int> &cpu_nodes() { return ids(); }
+
+const std::vector<int> &nodes() {return detail::nodes; }
 
 std::vector<int> cpus_in_node(int node) {
   if (detail::CPUsInNode.count(node)) {

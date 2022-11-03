@@ -8,7 +8,8 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
 option(SCOPE_USE_NUMA ON)
 option(SCOPE_USE_NVTX ON)
 option(SCOPE_USE_OPENMP ON)
-option(SCOPE_USE_CUDA ON)
+option(SCOPE_USE_CUDA OFF)
+option(SCOPE_USE_HIP ON)
 
 # link libraries but make the includes system includes to suppress warnings
 # https://stackoverflow.com/questions/52135983/cmake-target-link-libraries-include-as-system-to-suppress-compiler-warnings
@@ -47,6 +48,8 @@ add_subdirectory(src)
 add_library(scope
   ${SCOPE_SOURCES}
 )
+
+add_subdirectory(bin)
 
 # if we are included in another project with add_subdirectory(), mark our includes as system includes
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
