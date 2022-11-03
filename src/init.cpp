@@ -143,12 +143,16 @@ void do_after_inits() {
   }
 }
 
+void help_printer() {
+  scope::show_help(std::cerr);
+}
+
 void initialize(int *argc, char **argv) {
 
   // have benchmark library consume some flags
   /* TODO: this consumes the --help flag
      could remove the flag and restore it later? */
-  benchmark::Initialize(argc, argv);
+  benchmark::Initialize(argc, argv, help_printer);
 
   scope::add_flags();
   scope::parse(argc, argv);

@@ -5,11 +5,16 @@ project(SCOPE LANGUAGES CXX VERSION 1.1.2)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
 
+option(SCOPE_USE_CUDA OFF)
+option(SCOPE_USE_HIP OFF)
 option(SCOPE_USE_NUMA ON)
 option(SCOPE_USE_NVTX ON)
 option(SCOPE_USE_OPENMP ON)
-option(SCOPE_USE_CUDA OFF)
-option(SCOPE_USE_HIP ON)
+
+message(STATUS "SCOPE_USE_HIP:  ${SCOPE_USE_HIP}")
+message(STATUS "SCOPE_USE_CUDA: ${SCOPE_USE_CUDA}")
+message(STATUS "SCOPE_USE_NUMA: ${SCOPE_USE_NUMA}")
+message(STATUS "SCOPE_USE_NVTX: ${SCOPE_USE_NVTX}")
 
 # link libraries but make the includes system includes to suppress warnings
 # https://stackoverflow.com/questions/52135983/cmake-target-link-libraries-include-as-system-to-suppress-compiler-warnings
@@ -159,9 +164,11 @@ if("CUDA" IN_LIST languages)
     message(STATUS "CUDA found, compiling with -DSCOPE_USE_CUDA=1")
     target_compile_definitions(scope PUBLIC -DSCOPE_USE_CUDA=1)
 else()
-    target_compile_definitions(scope PUBLIC -DSCOPE_USE_CUDA=0)
 endif()
-    
+
+if(SCOPE_USE_HIP)
+  target_compile_definitions(scope PUBLIC -DSCOPE_USE_HIP=1)
+endif()
 
 ## NUMA
 if (SCOPE_USE_NUMA)
@@ -172,11 +179,9 @@ if (SCOPE_USE_NUMA)
       target_link_libraries(scope PUBLIC ${NUMA_LIBRARY})
       target_include_directories(scope SYSTEM PUBLIC ${NUMA_INCLUDE_DIR})
   else()
-    target_compile_definitions(scope PUBLIC -DSCOPE_USE_NUMA=0)
     message(WARNING "didn't find NUMA, some benchmarks will be unavailable.")
   endif(NUMA_FOUND)
 else()
-  target_compile_definitions(scope PUBLIC -DSCOPE_USE_NUMA=0)
 endif(SCOPE_USE_NUMA)
 
 ## OpenMP
@@ -205,7 +210,6 @@ if(SCOPE_USE_OPENMP)
 
     add_definitions(-DUSE_OPENMP=1)
   else(OpenMP_FOUND)
-    add_definitions(-DUSE_OPENMP=0)
     message(WARNING "didn't find OpenMP, some benchmarks will be unavailable.")
   endif(OpenMP_FOUND)
 endif(SCOPE_USE_OPENMP)
@@ -215,7 +219,6 @@ if(SCOPE_USE_NVTX AND "CUDA" IN_LIST languages)
   target_link_libraries(scope PUBLIC CUDA::nvToolsExt)
   target_compile_definitions(scope PUBLIC -DSCOPE_USE_NVTX=1)
 else()
-  target_compile_definitions(scope PUBLIC -DSCOPE_USE_NVTX=0)
 endif()
 
 add_library(scope::scope ALIAS scope)

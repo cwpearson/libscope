@@ -3,20 +3,42 @@
 #include <iostream>
 #include <string>
 
-#include "scope/error.hpp"
 #include "scope/logger.hpp"
 
+template <typename T>
+const char *error_string(const T &error);
 
-  template <typename T>
-  const char *error_string(const T &error);
+#if defined(SCOPE_USE_CUDA)
+template <> inline const char *error_string<cudaError_t>(const cudaError_t &status) {
+  return cudaGetErrorString(status);
+}
+#endif
 
-  template <typename T>
-  bool is_success(const T &err);
+#if defined(SCOPE_USE_HIP)
+template <> inline const char *error_string<hipError_t>(const hipError_t &status) {
+  return hipGetErrorString(status);
+}
+#endif
 
-  template <typename T>
-  bool is_error(const T &err) {
-    return !is_success<T>(err);
-  }
+template <typename T>
+bool is_success(const T &err);
+
+#if defined(SCOPE_USE_CUDA)
+template <> inline bool is_success<cudaError_t>(const cudaError_t &err) {
+  return err == cudaSuccess;
+}
+#endif
+
+#if defined(SCOPE_USE_HIP)
+template <> inline bool is_success<hipError_t>(const hipError_t &err) {
+  return err == hipSuccess;
+}
+#endif
+
+template <typename T>
+bool is_error(const T &err) {
+  return !is_success<T>(err);
+}
 
   template <typename T>
   bool print_if_error(const T &err, const char *stmt, const char *file, const char *func,

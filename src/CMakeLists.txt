@@ -6,12 +6,19 @@ set(SCOPE_SOURCES ${SCOPE_SOURCES}
   ${CMAKE_CURRENT_LIST_DIR}/logger.cpp
   ${CMAKE_CURRENT_LIST_DIR}/numa.cpp
   ${CMAKE_CURRENT_LIST_DIR}/turbo.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/system.cpp
 )
 
 if (SCOPE_USE_CUDA)
   set(SCOPE_SOURCES ${SCOPE_SOURCES}
     ${CMAKE_CURRENT_LIST_DIR}/cuda.cpp
     ${CMAKE_CURRENT_LIST_DIR}/do_not_optimize.cu
+  )
+endif()
+
+if (SCOPE_USE_HIP)
+  set(SCOPE_SOURCES ${SCOPE_SOURCES}
+    ${CMAKE_CURRENT_LIST_DIR}/hip.cpp
   )
 endif()
 
