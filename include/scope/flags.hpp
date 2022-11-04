@@ -18,6 +18,7 @@ extern std::vector<int> visibleGPUs; // GPUs that are visible during benchmark r
 extern std::vector<int> visibleNUMAs; // NUMA nodes visible during benchmark registration
 
 bool numa_is_visible(int node) noexcept;
+bool gpu_is_visible(int node) noexcept;
 }
 
 /* add the scope flags to the parser
