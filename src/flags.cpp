@@ -17,6 +17,13 @@ std::string benchmarkStuff;
 /*extern*/ std::vector<int> visibleGPUs;
 /*extern*/ std::vector<int> visibleNUMAs;
 
+bool numa_is_visible(int node) noexcept {
+  if (visibleNUMAs.empty()) {
+    return true;
+  }
+  return visibleNUMAs.end() != std::find(visibleNUMAs.begin(), visibleNUMAs.end(), node);
+}
+
 } // namespace flags
 
 void parse(int *argc, char **argv) {

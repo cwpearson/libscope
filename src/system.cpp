@@ -1,4 +1,5 @@
 #include "scope/system.hpp"
+#include "scope/logger.hpp"
 
 namespace scope {
 namespace system {
@@ -24,7 +25,6 @@ std::vector<MemorySpace> hip_memory_spaces() {
 
 
 std::vector<MemorySpace> numa_memory_spaces() {
-
     auto nodes = numa::nodes();
 
     std::vector<MemorySpace> ret;
@@ -35,17 +35,34 @@ std::vector<MemorySpace> numa_memory_spaces() {
     return ret;
 }
 
-std::vector<MemorySpace> memory_spaces() {
+std::vector<MemorySpace> memory_spaces(const std::vector<MemorySpace::Kind> &kinds) {
+    LOG(trace, "scope::system::memory_spaces()...");
 
     std::vector<MemorySpace> spaces;
 
     auto numaSpaces = numa_memory_spaces();
+    LOG(trace, "scope::system::memory_spaces(): {} numa spaces", numaSpaces.size());
     spaces.insert(spaces.begin(), numaSpaces.begin(), numaSpaces.end());
 
     auto hipSpaces = hip_memory_spaces();
     spaces.insert(spaces.begin(), hipSpaces.begin(), hipSpaces.end());
 
-    return spaces;
+    // if kinds are provided, only keep matches
+    if (!kinds.empty()) {
+        std::vector<MemorySpace> ret;
+        std::copy_if(spaces.begin(), spaces.end(), std::back_inserter(ret),
+        [&](const MemorySpace &ms){
+            for (const MemorySpace::Kind &kind : kinds) {
+                if (ms.kind() == kind) {
+                    return true;
+                }
+            }
+            return false;
+        });
+        return ret;
+    } else {
+        return spaces;
+    }
 };
 
 std::vector<TransferMethod> transfer_methods(const MemorySpace &src, const MemorySpace &dst) {

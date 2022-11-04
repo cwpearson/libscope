@@ -4,6 +4,7 @@ set(SCOPE_SOURCES ${SCOPE_SOURCES}
   ${CMAKE_CURRENT_LIST_DIR}/governor.cpp
   ${CMAKE_CURRENT_LIST_DIR}/init.cpp
   ${CMAKE_CURRENT_LIST_DIR}/logger.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/memory_space.cpp
   ${CMAKE_CURRENT_LIST_DIR}/numa.cpp
   ${CMAKE_CURRENT_LIST_DIR}/turbo.cpp
   ${CMAKE_CURRENT_LIST_DIR}/system.cpp

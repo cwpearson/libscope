@@ -15,7 +15,13 @@ namespace system {
 
 std::vector<MemorySpace> hip_memory_spaces();
 std::vector<MemorySpace> numa_memory_spaces();
-std::vector<MemorySpace> memory_spaces();
+std::vector<MemorySpace> memory_spaces(const std::vector<MemorySpace::Kind> &kinds = {});
+inline std::vector<MemorySpace> memory_spaces(const MemorySpace::Kind &kind) {
+    std::vector<MemorySpace::Kind> kinds;
+    kinds.push_back(kind);
+    return memory_spaces(kinds);
+}
+
 
 enum class TransferMethod {
     hip_memcpy,

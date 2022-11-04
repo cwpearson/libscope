@@ -135,6 +135,7 @@ void do_inits() {
 
 void do_after_inits() {
   LOG(debug, "running {} after init functions", AfterInits().size());
+
   for (size_t i = 0; i < AfterInits().size(); ++i) {
     auto r = AfterInits()[i];
     LOG(debug, "Calling AfterInit  {} ({})", i, r.name);

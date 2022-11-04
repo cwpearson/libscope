@@ -33,7 +33,8 @@ public:
 #endif // __HIP__
 
     const Kind &kind() const noexcept {return kind_;}
-    const int device_id() const noexcept {return deviceId_;}
+    int device_id() const;
+    int numa_id() const;
 
     friend std::ostream& operator<<(std::ostream& os, const MemorySpace& ms);
 

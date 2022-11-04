@@ -16,6 +16,8 @@ extern std::string parseErrorMessage; // a description of a cli parse error
 
 extern std::vector<int> visibleGPUs; // GPUs that are visible during benchmark registration
 extern std::vector<int> visibleNUMAs; // NUMA nodes visible during benchmark registration
+
+bool numa_is_visible(int node) noexcept;
 }
 
 /* add the scope flags to the parser
