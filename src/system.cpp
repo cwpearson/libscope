@@ -1,25 +1,23 @@
 #include "scope/system.hpp"
 #include "scope/logger.hpp"
+#include "scope/flags.hpp"
 
 namespace scope {
 namespace system {
 
 
 std::vector<MemorySpace> hip_memory_spaces() {
-#if defined(SCOPE_USE_HIP)
-    int ndev;
-    HIP_RUNTIME(hipGetDeviceCount(&ndev));
-
     std::vector<MemorySpace> ret;
 
-    for (int i = 0; i < ndev; ++i) {
-        ret.push_back(MemorySpace::hip_device_space(i));
+    std::vector<int> ids = hip_device_ids();
+    for (const auto &id : ids) {
+        ret.push_back(MemorySpace::hip_device_space(id));
     }
+
+#if defined(SCOPE_USE_HIP)
     ret.push_back(MemorySpace::hip_managed_space());
-    return ret;
-#else
-    return {};
 #endif
+    return ret;
 }
 
 
@@ -45,6 +43,7 @@ std::vector<MemorySpace> memory_spaces(const std::vector<MemorySpace::Kind> &kin
     spaces.insert(spaces.begin(), numaSpaces.begin(), numaSpaces.end());
 
     auto hipSpaces = hip_memory_spaces();
+    LOG(trace, "scope::system::memory_spaces(): {} HIP spaces", hipSpaces.size());
     spaces.insert(spaces.begin(), hipSpaces.begin(), hipSpaces.end());
 
     // if kinds are provided, only keep matches
@@ -114,6 +113,19 @@ std::vector<TransferMethod> transfer_methods(const MemorySpace &src, const Memor
     return {};
 }
 
+std::vector<int> hip_device_ids() {
+    std::vector<int> ret;
+#if defined(SCOPE_USE_HIP)
+    int ndev;
+    HIP_RUNTIME(hipGetDeviceCount(&ndev));
+    for (int i = 0; i < ndev; ++i) {
+        if (scope::flags::gpu_is_visible(i)) {
+             ret.push_back(i);
+        }
+    }
+#endif
+    return ret;
+}
 
 } // namespace system
 } // namespace scope
