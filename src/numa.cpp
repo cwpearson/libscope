@@ -55,14 +55,14 @@ void init() {
   // this may be quite restricted, especially on
   // managed clusters
   LOG(trace, "numa_num_possible_cpus()={}", numa_num_possible_cpus());
-  struct bitmask *allowedCpus = numa_get_run_node_mask();
+  // struct bitmask *allowedCpus = numa_get_run_node_mask();
   for (int i = 0; i < numa_num_possible_cpus(); ++i) {
-    if (numa_bitmask_isbitset(allowedCpus, i)) {
+    if (numa_bitmask_isbitset(numa_all_cpus_ptr, i)) {
       LOG(trace, "mayrun on CPU {}", i);
       detail::allowedCPUs.insert(i);
     }
   }
-  numa_free_cpumask(allowedCpus);
+  // numa_free_cpumask(allowedCpus);
 
   // returns a mask of nodes on which the current task
   // is allowed to allocate memory
