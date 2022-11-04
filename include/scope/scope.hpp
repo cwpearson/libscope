@@ -16,6 +16,7 @@
 #if defined(SCOPE_USE_HIP)
 #include "scope/hip.hpp"
 #if defined(__HIP_DEVICE_COMPILE__)
+#include "scope/do_not_optimize.hpp"
 #endif // __HIP_DEVICE_COMPILE__
 #endif // SCOPE_USE_HIP
 
