@@ -158,7 +158,9 @@ Result get_state(State *state) {
     }
   } else if (Method::NONE == state->method) {
     result = Result::NOT_SUPPORTED;
-}
+  } else {
+    throw std::runtime_error("unexpected state method");
+  }
 
   return result;
 }
