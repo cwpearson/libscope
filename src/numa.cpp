@@ -168,7 +168,9 @@ const std::vector<int> &cpu_nodes() { return ids(); }
 const std::vector<int> nodes() {
   std::vector<int> ret;
   for (int node : detail::allowedMems) {
-    ret.push_back(node);
+    if (scope::flags::numa_is_visible(node)) {
+      ret.push_back(node);
+    }
   }
   sort_and_uniqify(ret);
   return ret; 
