@@ -8,6 +8,7 @@ public:
         numa
         ,hip_device
         ,hip_managed
+        ,hip_mapped_pinned
         ,cuda_device
     };
 
@@ -25,9 +26,17 @@ public:
         ms.deviceId_ = id;
         return ms;
     }
-    static MemorySpace hip_managed_space() {
+    static MemorySpace hip_managed_space(int id) {
         MemorySpace ms;
         ms.kind_ = Kind::hip_managed;
+        ms.numaId_ = id;
+        return ms;
+    }
+    static MemorySpace hip_mapped_pinned(int deviceId, int numaId) {
+        MemorySpace ms;
+        ms.kind_ = Kind::hip_mapped_pinned;
+        ms.deviceId_ = deviceId;
+        ms.numaId_ = numaId;
         return ms;
     }
 #endif // __HIP__
@@ -59,7 +68,11 @@ inline std::ostream& operator<<(std::ostream& os, const MemorySpace& ms)
             break;
         }
         case Kind::hip_managed: {
-            os << "hip_managed";
+            os << "hip_managed:" << ms.numaId_;
+            break;
+        }
+        case Kind::hip_mapped_pinned: {
+            os << "hip_mapped_pinned:" << ms.deviceId_ << ":" << ms.numaId_;
             break;
         }
         case Kind::cuda_device: {

@@ -9,17 +9,25 @@ namespace system {
 std::vector<MemorySpace> hip_memory_spaces() {
     std::vector<MemorySpace> ret;
 
-    std::vector<int> ids = hip_device_ids();
-    for (const auto &id : ids) {
+    const std::vector<int> hipIds = hip_device_ids();
+    for (const auto &id : hipIds) {
         ret.push_back(MemorySpace::hip_device_space(id));
     }
 
+    const std::vector<int> numaIds = numa::nodes();
+    for (const auto &numaId : numaIds) {
+        for (const auto &hipId : hipIds) {
+            ret.push_back(MemorySpace::hip_mapped_pinned(hipId, numaId));
+        }
+    }
+
 #if defined(SCOPE_USE_HIP)
-    ret.push_back(MemorySpace::hip_managed_space());
+    for (const auto &numaId : numaIds) {
+        ret.push_back(MemorySpace::hip_managed_space(numaId));
+    }
 #endif
     return ret;
 }
-
 
 
 std::vector<MemorySpace> numa_memory_spaces() {
