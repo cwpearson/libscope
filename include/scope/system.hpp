@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include "scope/device.hpp"
 #include "scope/memory_space.hpp"
 #include "scope/numa.hpp"
 
@@ -32,7 +33,7 @@ std::vector<TransferMethod> transfer_methods(const MemorySpace &src, const Memor
 
 /* return HIP device IDs that the process can execute on
 */
-std::vector<int> hip_device_ids();
+std::vector<Device> hip_devices();
 
 } // namespace system
 } // namespace scope

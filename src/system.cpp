@@ -9,15 +9,15 @@ namespace system {
 std::vector<MemorySpace> hip_memory_spaces() {
     std::vector<MemorySpace> ret;
 
-    const std::vector<int> hipIds = hip_device_ids();
-    for (const auto &id : hipIds) {
-        ret.push_back(MemorySpace::hip_device_space(id));
+    const std::vector<Device> hips = hip_devices();
+    for (const Device &hip : hips) {
+        ret.push_back(MemorySpace::hip_device_space(hip.device_id()));
     }
 
     const std::vector<int> numaIds = numa::nodes();
     for (const auto &numaId : numaIds) {
-        for (const auto &hipId : hipIds) {
-            ret.push_back(MemorySpace::hip_mapped_pinned(hipId, numaId));
+        for (const Device &hip : hips) {
+            ret.push_back(MemorySpace::hip_mapped_pinned(hip.device_id(), numaId));
         }
     }
 
@@ -121,14 +121,14 @@ std::vector<TransferMethod> transfer_methods(const MemorySpace &src, const Memor
     return {};
 }
 
-std::vector<int> hip_device_ids() {
-    std::vector<int> ret;
+std::vector<Device> hip_devices() {
+    std::vector<Device> ret;
 #if defined(SCOPE_USE_HIP)
     int ndev;
     HIP_RUNTIME(hipGetDeviceCount(&ndev));
     for (int i = 0; i < ndev; ++i) {
         if (scope::flags::gpu_is_visible(i)) {
-             ret.push_back(i);
+             ret.push_back(Device::hip_device(i));
         }
     }
 #endif

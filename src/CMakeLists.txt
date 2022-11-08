@@ -1,5 +1,6 @@
 set(SCOPE_SOURCES ${SCOPE_SOURCES}
   ${CMAKE_CURRENT_LIST_DIR}/cache.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/device.cpp
   ${CMAKE_CURRENT_LIST_DIR}/flags.cpp
   ${CMAKE_CURRENT_LIST_DIR}/governor.cpp
   ${CMAKE_CURRENT_LIST_DIR}/init.cpp
