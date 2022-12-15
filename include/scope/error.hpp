@@ -46,7 +46,7 @@ bool is_error(const T &err) {
     if (is_success<T>(err)) {
       return false;
     }
-#if defined(__CUDA_ARCH__)
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
     // in device code
     printf("ERROR on %s::%d In %s:(%s) FAILED\n", file, line, func, stmt);
 #else  // defined(__CUDA_ARCH__)
@@ -125,7 +125,7 @@ bool is_error(const T &err) {
 #endif // IS_ERROR
 
 #ifndef PRINT_IF_ERROR
-#define PRINT_IF_ERROR(stmt) print_if_error(stmt, #stmt, __FILE__, __func__, __LINE__)
+#define PRINT_IF_ERROR(stmt) print_if_error((stmt), #stmt, __FILE__, __func__, __LINE__)
 #endif // PRINT_IF_ERROR
 
 #ifndef THROW_IF_ERROR_WITH_MSG
