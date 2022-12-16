@@ -5,16 +5,18 @@ project(SCOPE LANGUAGES CXX VERSION 1.1.2)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
 
-option(SCOPE_USE_CUDA OFF)
-option(SCOPE_USE_HIP OFF)
-option(SCOPE_USE_NUMA ON)
-option(SCOPE_USE_NVTX ON)
-option(SCOPE_USE_OPENMP ON)
+option(SCOPE_USE_CUDA "" OFF)
+option(SCOPE_USE_HIP "" OFF)
+option(SCOPE_USE_NUMA "" ON)
+option(SCOPE_TRY_DOWNLOAD_NUMA "" ON)
+option(SCOPE_USE_NVTX "" ON)
+option(SCOPE_USE_OPENMP "" ON)
 
-message(STATUS "SCOPE_USE_HIP:  ${SCOPE_USE_HIP}")
-message(STATUS "SCOPE_USE_CUDA: ${SCOPE_USE_CUDA}")
-message(STATUS "SCOPE_USE_NUMA: ${SCOPE_USE_NUMA}")
-message(STATUS "SCOPE_USE_NVTX: ${SCOPE_USE_NVTX}")
+message(STATUS "SCOPE_USE_HIP:           ${SCOPE_USE_HIP}")
+message(STATUS "SCOPE_USE_CUDA:          ${SCOPE_USE_CUDA}")
+message(STATUS "SCOPE_USE_NUMA:          ${SCOPE_USE_NUMA}")
+message(STATUS "SCOPE_TRY_DOWNLOAD_NUMA: ${SCOPE_TRY_DOWNLOAD_NUMA}")
+message(STATUS "SCOPE_USE_NVTX:          ${SCOPE_USE_NVTX}")
 
 # enable CUDA if desired and available
 include(CheckLanguage)
@@ -173,16 +175,44 @@ endif()
 
 ## NUMA
 if (SCOPE_USE_NUMA)
+
+  # look for NUMA
   find_package(NUMA)
+
+  # if we can't find it, try to download and install it
+  if(NOT NUMA_FOUND)
+    if (SCOPE_TRY_DOWNLOAD_NUMA)
+      include(ExternalProject)
+      ExternalProject_Add(numa
+        URL https://github.com/numactl/numactl/archive/refs/tags/v2.0.16.tar.gz
+        URL_HASH          MD5=e11f1d09fe3833e8b6d3856f577ad1cc
+        INSTALL_DIR       numa-prefix/install
+        UPDATE_COMMAND    ""
+        BUILD_IN_SOURCE   1
+        CONFIGURE_COMMAND ./autogen.sh
+        COMMAND           ./configure --prefix=${CMAKE_CURRENT_BINARY_DIR}/numa-prefix/install
+        BUILD_COMMAND     make -j4
+      )
+      ExternalProject_Get_Property(numa INSTALL_DIR)
+      message(STATUS "will install NUMA to ${INSTALL_DIR}")
+
+      # we know where numa is
+      set(NUMA_INCLUDE_DIR "${INSTALL_DIR}/include")
+      set(NUMA_LIBRARY "${INSTALL_DIR}/lib/libnuma.a")
+      set(NUMA_FOUND True)
+
+      # wait for numa to exist before building scope
+      add_dependencies(scope numa)
+    endif(SCOPE_TRY_DOWNLOAD_NUMA)
+  endif(NOT NUMA_FOUND)
+
   if(NUMA_FOUND)
-      message(STATUS "Found NUMA: " ${NUMA_INCLUDE_DIR}, ${NUMA_LIBRARY})
-      target_compile_definitions(scope PUBLIC -DSCOPE_USE_NUMA=1)
-      target_link_libraries(scope PUBLIC ${NUMA_LIBRARY})
-      target_include_directories(scope SYSTEM PUBLIC ${NUMA_INCLUDE_DIR})
-  else()
-    message(WARNING "didn't find NUMA, some benchmarks will be unavailable.")
-  endif(NUMA_FOUND)
-else()
+    message(STATUS "Found NUMA: ${NUMA_INCLUDE_DIR} ${NUMA_LIBRARY}")
+    target_compile_definitions(scope PUBLIC -DSCOPE_USE_NUMA=1)
+    target_link_libraries(scope PUBLIC ${NUMA_LIBRARY})
+    target_include_directories(scope SYSTEM PUBLIC ${NUMA_INCLUDE_DIR})
+  endif()
+
 endif(SCOPE_USE_NUMA)
 
 ## OpenMP
