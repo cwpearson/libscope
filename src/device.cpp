@@ -4,7 +4,7 @@
 
 int Device::device_id() const {
     switch (kind_) {
-#if SCOPE_USE_HIP == 1
+#if defined(SCOPE_USE_HIP) && SCOPE_USE_HIP == 1
         case Kind::hip: return id_;
 #endif
         default:
@@ -14,7 +14,7 @@ int Device::device_id() const {
 
 bool Device::can_map_host_memory() const {
     switch (kind_) {
-#if SCOPE_USE_HIP == 1
+#if defined(SCOPE_USE_HIP) && SCOPE_USE_HIP == 1
     case Kind::hip: return hipDeviceProp_.canMapHostMemory;
 #endif
     default:
