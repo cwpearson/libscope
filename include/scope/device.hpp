@@ -1,6 +1,8 @@
 #pragma once
 
+#if SCOPE_USE_HIP == 1
 #include "scope/hip.hpp"
+#endif
 
 class Device {
 public:
@@ -17,12 +19,14 @@ public:
 
     int device_id() const;
 
+#if SCOPE_USE_HIP == 1
     static Device hip_device(int id) {
         Device device(Kind::hip);
         device.id_ = id;
         HIP_RUNTIME(hipGetDeviceProperties(&device.hipDeviceProp_, id));
         return device;
     }
+#endif
 
     /*
     HIP: returns hipDeviceProp_t::canMapHostMemory

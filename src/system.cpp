@@ -21,11 +21,9 @@ std::vector<MemorySpace> hip_memory_spaces() {
         }
     }
 
-#if defined(SCOPE_USE_HIP)
     for (const auto &numaId : numaIds) {
         ret.push_back(MemorySpace::hip_managed_space(numaId));
     }
-#endif
     return ret;
 }
 

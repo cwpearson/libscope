@@ -200,6 +200,7 @@ bool can_execute_in_node(int node) {
 
 void bind_cpu(const std::vector<int> &cpus) {
   // allocate CPU maks
+#if defined(SCOPE_USE_NUMA)
   struct bitmask *mask = numa_allocate_cpumask();
 
   for (int cpu : cpus) {
@@ -210,6 +211,7 @@ void bind_cpu(const std::vector<int> &cpus) {
   numa_run_on_node_mask(mask);
 
   numa_free_cpumask(mask);
+#endif
 }
 
 ScopedBind::ScopedBind(int node) : active(true) { bind_node(node); }

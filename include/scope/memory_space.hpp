@@ -19,7 +19,6 @@ public:
         return ms;
     }
 
-#ifdef __HIP__
     static MemorySpace hip_device_space(int id) {
         MemorySpace ms;
         ms.kind_ = Kind::hip_device;
@@ -39,7 +38,6 @@ public:
         ms.numaId_ = numaId;
         return ms;
     }
-#endif // __HIP__
 
     const Kind &kind() const noexcept {return kind_;}
     int device_id() const;
