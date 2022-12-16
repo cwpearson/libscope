@@ -190,7 +190,7 @@ if (SCOPE_USE_NUMA)
         UPDATE_COMMAND    ""
         BUILD_IN_SOURCE   1
         CONFIGURE_COMMAND ./autogen.sh
-        COMMAND           ./configure --prefix=${CMAKE_CURRENT_BINARY_DIR}/numa-prefix/install
+        COMMAND           ./configure --prefix=${CMAKE_CURRENT_BINARY_DIR}/numa-prefix/install CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER}
         BUILD_COMMAND     make -j4
       )
       ExternalProject_Get_Property(numa INSTALL_DIR)
