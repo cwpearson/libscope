@@ -16,6 +16,17 @@ message(STATUS "SCOPE_USE_CUDA: ${SCOPE_USE_CUDA}")
 message(STATUS "SCOPE_USE_NUMA: ${SCOPE_USE_NUMA}")
 message(STATUS "SCOPE_USE_NVTX: ${SCOPE_USE_NVTX}")
 
+# enable CUDA if desired and available
+include(CheckLanguage)
+if(SCOPE_USE_CUDA)
+  check_language(CUDA)
+  if(CMAKE_CUDA_COMPILER)
+    enable_language(CUDA)
+  else()
+    message(ERROR "No CUDA support")
+  endif()
+endif()
+
 # link libraries but make the includes system includes to suppress warnings
 # https://stackoverflow.com/questions/52135983/cmake-target-link-libraries-include-as-system-to-suppress-compiler-warnings
 function(target_link_libraries_system target)
@@ -129,17 +140,6 @@ configure_file (
 )
 target_include_directories(scope PUBLIC ${PROJECT_BINARY_DIR}/include/)
 
-# enable CUDA if desired and available
-include(CheckLanguage)
-if(SCOPE_USE_CUDA)
-  check_language(CUDA)
-  if(CMAKE_CUDA_COMPILER)
-    enable_language(CUDA)
-  else()
-    message(ERROR "No CUDA support")
-  endif()
-endif()
-
 # check which languages are enabled
 get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
 
@@ -147,7 +147,7 @@ get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
 # As this is a public compile feature anything that links to
 # scope will also build with -std=c++11
 target_compile_features(scope PUBLIC cxx_std_11)
-if("CUDA" IN_LIST languages)
+if("CUDA" IN_LIST languages AND SCOPE_USE_CUDA)
   set_property(TARGET scope PROPERTY CUDA_STANDARD 11)
   set_property(TARGET scope PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 endif()
@@ -157,16 +157,17 @@ target_link_libraries_system(scope benchmark::benchmark)
 target_link_libraries_system(scope spdlog::spdlog)
 target_link_libraries_system(scope BFG::Lyra)
 
-if("CUDA" IN_LIST languages)
+if("CUDA" IN_LIST languages AND SCOPE_USE_CUDA)
     ## CUDA Toolkit
     find_package(CUDAToolkit REQUIRED)
     target_link_libraries(scope PUBLIC CUDA::cudart)
-    message(STATUS "CUDA found, compiling with -DSCOPE_USE_CUDA=1")
+    message(STATUS "CUDA enabled, compiling with -DSCOPE_USE_CUDA=1")
     target_compile_definitions(scope PUBLIC -DSCOPE_USE_CUDA=1)
 else()
 endif()
 
 if(SCOPE_USE_HIP)
+  message(STATUS "HIP enabled, compiling with -DSCOPE_USE_HIP=1")
   target_compile_definitions(scope PUBLIC -DSCOPE_USE_HIP=1)
 endif()
 
