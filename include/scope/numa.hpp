@@ -2,6 +2,10 @@
 
 #include <vector>
 
+#if defined(SCOPE_USE_NUMA) && SCOPE_USE_NUMA == 1
+#include <numa.h>
+#endif
+
 namespace numa {
 
 /* to be called during scope init
@@ -16,6 +20,18 @@ bool available();
    bind execution to legal CPUs in this node
 */
 void bind_node(int node);
+
+
+template <typename T>
+T* alloc_node(size_t count, int node) {
+#if defined(SCOPE_USE_NUMA) && SCOPE_USE_NUMA == 1
+  return static_cast<T*>(numa_alloc_onnode(count * sizeof(T), node));
+#else
+  return static_cast<T*>(malloc(count * sizeof(T)));
+#endif
+}
+
+void free_node(void *start, size_t size);
 
 /* return the number of numa nodes
 If no NUMA support, return 1

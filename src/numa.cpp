@@ -4,7 +4,7 @@
 #include <thread>
 #include <iostream>
 
-#if defined(SCOPE_USE_NUMA)
+#if defined(SCOPE_USE_NUMA) && SCOPE_USE_NUMA == 1
 #include <numa.h>
 #include <unistd.h>
 #endif
@@ -226,6 +226,14 @@ ScopedBind::ScopedBind(ScopedBind &&other) {
   other.active = false;
 }
 
+void free_node(void *start, size_t size) {
+#if defined(SCOPE_USE_NUMA) && SCOPE_USE_NUMA == 1
+  return numa_free(start, size);
+#else
+  return free(start);
+  (void) size;
+#endif
+}
 
 
 } // namespace numa
