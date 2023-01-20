@@ -14,7 +14,7 @@ std::vector<MemorySpace> hip_memory_spaces() {
         ret.push_back(MemorySpace::hip_device_space(hip.device_id()));
     }
 
-    const std::vector<int> numaIds = numa::nodes();
+    const auto numaIds = numa::mems();
     for (const auto &numaId : numaIds) {
         for (const Device &hip : hips) {
             ret.push_back(MemorySpace::hip_mapped_pinned(hip.device_id(), numaId));
@@ -29,7 +29,7 @@ std::vector<MemorySpace> hip_memory_spaces() {
 
 
 std::vector<MemorySpace> numa_memory_spaces() {
-    auto nodes = numa::nodes();
+    auto nodes = numa::mems();
 
     std::vector<MemorySpace> ret;
     for (const auto &node : nodes) {
