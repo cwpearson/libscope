@@ -37,7 +37,7 @@ bool Device::can_map_host_memory() const {
 }
 
 #if defined(SCOPE_USE_HIP)
-Device::Device::hip_device(int id) {
+Device Device::hip_device(int id) {
   Device device(Device::Kind::hip, id);
   HIP_RUNTIME(hipGetDeviceProperties(&device.hipDeviceProp_, id));
   return device;
