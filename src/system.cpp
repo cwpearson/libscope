@@ -26,6 +26,27 @@ std::vector<MemorySpace> hip_memory_spaces() {
   return ret;
 }
 
+std::vector<MemorySpace> cuda_memory_spaces() {
+  std::vector<MemorySpace> ret;
+
+  const std::vector<Device> cudas = cuda_devices();
+  for (const Device &cuda : cudas) {
+    ret.push_back(MemorySpace::cuda_device_space(cuda.device_id()));
+  }
+
+  const auto numaIds = numa::mems();
+  for (const auto &numaId : numaIds) {
+    for (const Device &cuda : cudas) {
+      ret.push_back(MemorySpace::cuda_pinned(cuda.device_id(), numaId));
+    }
+  }
+
+  for (const auto &numaId : numaIds) {
+    ret.push_back(MemorySpace::cuda_managed_space(numaId));
+  }
+  return ret;
+}
+
 std::vector<MemorySpace> numa_memory_spaces() {
   auto nodes = numa::mems();
 
@@ -51,6 +72,10 @@ memory_spaces(const std::vector<MemorySpace::Kind> &kinds) {
   auto hipSpaces = hip_memory_spaces();
   LOG(trace, "scope::system::memory_spaces(): {} HIP spaces", hipSpaces.size());
   spaces.insert(spaces.begin(), hipSpaces.begin(), hipSpaces.end());
+
+  auto cudaSpaces = cuda_memory_spaces();
+  LOG(trace, "scope::system::memory_spaces(): {} CUDA spaces", cudaSpaces.size());
+  spaces.insert(spaces.begin(), cudaSpaces.begin(), cudaSpaces.end());
 
   // if kinds are provided, only keep matches
   if (!kinds.empty()) {

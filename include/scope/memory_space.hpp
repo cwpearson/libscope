@@ -9,7 +9,9 @@ public:
     hip_device,
     hip_managed,
     hip_mapped_pinned,
-    cuda_device
+    cuda_device,
+    cuda_managed,
+    cuda_pinned
   };
 
   static MemorySpace numa_space(int id) {
@@ -25,15 +27,39 @@ public:
     ms.deviceId_ = id;
     return ms;
   }
+
   static MemorySpace hip_managed_space(int id) {
     MemorySpace ms;
     ms.kind_ = Kind::hip_managed;
     ms.numaId_ = id;
     return ms;
   }
+
   static MemorySpace hip_mapped_pinned(int deviceId, int numaId) {
     MemorySpace ms;
     ms.kind_ = Kind::hip_mapped_pinned;
+    ms.deviceId_ = deviceId;
+    ms.numaId_ = numaId;
+    return ms;
+  }
+
+  static MemorySpace cuda_device_space(int id) {
+    MemorySpace ms;
+    ms.kind_ = Kind::cuda_device;
+    ms.deviceId_ = id;
+    return ms;
+  }
+
+  static MemorySpace cuda_managed_space(int id) {
+    MemorySpace ms;
+    ms.kind_ = Kind::cuda_managed;
+    ms.numaId_ = id;
+    return ms;
+  }
+
+  static MemorySpace cuda_pinned(int deviceId, int numaId) {
+    MemorySpace ms;
+    ms.kind_ = Kind::cuda_pinned;
     ms.deviceId_ = deviceId;
     ms.numaId_ = numaId;
     return ms;
