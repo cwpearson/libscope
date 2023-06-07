@@ -42,7 +42,7 @@ void flush(void *p) {
   );
 #else
 #warning "flush not implemented"
-  (void) p;
+  (void)p;
 #endif
 }
 
@@ -52,18 +52,16 @@ void barrier_all() {
 
   // sync is a mnemonic for sync 0, heavyweight sync
   asm volatile("sync"
-               :        // no outputs
-               :        // no inputs
-               : "memory"
-  );
+               : // no outputs
+               : // no inputs
+               : "memory");
 
 #elif __amd64__
 
   asm volatile("mfence"
                : // no outputs
                : // no inputs
-               : "memory"
-  );
+               : "memory");
 
 #else
 #warning "barrier_all not implemented"

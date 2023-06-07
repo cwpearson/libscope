@@ -10,47 +10,40 @@
 
 class Device {
 public:
+  enum class Kind { cuda, hip };
 
-    enum class Kind {
-        cuda,
-        hip
-    };
+  Device(const Kind &kind, int id) : kind_(kind), id_(id) {}
 
-    Device(const Kind &kind, int id) : kind_(kind), id_(id) {}
+  int device_id() const;
 
-    int device_id() const;
+  operator int() const { return id_; }
 
-    operator int() const {
-        return id_;
-    }
-
-    /*
-    HIP: returns hipDeviceProp_t::canMapHostMemory
-    */
-    bool can_map_host_memory() const;
-
-    #if defined(SCOPE_USE_HIP)
-    static Device hip_device(int id);
-    #endif
-
-    #if defined(SCOPE_USE_CUDA)
-    static Device cuda_device(int id);
-    #endif
-
-private:
-    Kind kind_;
-    int id_;
+  /*
+  HIP: returns hipDeviceProp_t::canMapHostMemory
+  */
+  bool can_map_host_memory() const;
 
 #if defined(SCOPE_USE_HIP)
-    hipDeviceProp_t hipDeviceProp_;
+  static Device hip_device(int id);
+#endif
+
+#if defined(SCOPE_USE_CUDA)
+  static Device cuda_device(int id);
+#endif
+
+private:
+  Kind kind_;
+  int id_;
+
+#if defined(SCOPE_USE_HIP)
+  hipDeviceProp_t hipDeviceProp_;
 #endif
 
 #if defined(SCOPE_USE_CUDA)
 #if defined(SCOPE_HAVE_CUDA_DEVICE_PROP)
-    cudaDeviceProp cudaDeviceProp_;
+  cudaDeviceProp cudaDeviceProp_;
 #else
-    cudaDeviceProp_t cudaDeviceProp_;
+  cudaDeviceProp_t cudaDeviceProp_;
 #endif
 #endif
 };
-

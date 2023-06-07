@@ -1,7 +1,7 @@
 #pragma once
 
-#include <memory>
 #include <condition_variable>
+#include <memory>
 
 // https://stackoverflow.com/questions/24465533/implementing-boostbarrier-in-c11
 class Barrier {

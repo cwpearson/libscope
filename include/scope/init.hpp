@@ -2,8 +2,7 @@
 
 #include <string>
 
-namespace scope{ 
-
+namespace scope {
 
 void initialize(int *argc, char **argv);
 void run();
@@ -25,7 +24,6 @@ typedef void (*BeforeInitFn)();
 // It could be used to programatically register benchmarks
 typedef void (*AfterInitFn)();
 
-
 void RegisterBeforeInit(BeforeInitFn fn);
 void RegisterInit(InitFn fn);
 AfterInitFn RegisterAfterInit(AfterInitFn fn, const char *name);
@@ -33,23 +31,20 @@ AfterInitFn RegisterAfterInit(AfterInitFn fn, const char *name);
 // a string that will be returned by later calls to VersionStrings()
 void RegisterVersionString(const std::string &s);
 
-const std::vector<std::string>& VersionStrings();
+const std::vector<std::string> &VersionStrings();
 
 struct InitRegisterer {
-  InitRegisterer(InitFn fn) {
-    RegisterInit(fn);
-  }
+  InitRegisterer(InitFn fn) { RegisterInit(fn); }
 };
 
 struct BeforeInitRegisterer {
-  BeforeInitRegisterer(BeforeInitFn fn) {
-    RegisterBeforeInit(fn);
-  }
+  BeforeInitRegisterer(BeforeInitFn fn) { RegisterBeforeInit(fn); }
 };
 
 } // namespace scope
 
-#define SCOPE_REGISTER_BEFORE_INIT(x) static BeforeInitRegisterer _r_before_init_##x(x);
+#define SCOPE_REGISTER_BEFORE_INIT(x)                                          \
+  static BeforeInitRegisterer _r_before_init_##x(x);
 
 #define SCOPE_REGISTER_INIT(x) static InitRegisterer _r_init_##x(x);
 
@@ -57,7 +52,6 @@ struct BeforeInitRegisterer {
 #define SCOPE_CONCAT2(a, b) a##b
 #define AFTER_INIT_FN_NAME(x) SCOPE_CONCAT(_after_init_, __LINE__)
 
-#define SCOPE_AFTER_INIT(x, name) \
-  static scope::AfterInitFn AFTER_INIT_FN_NAME(x) = scope::RegisterAfterInit(x, name);
-
-
+#define SCOPE_AFTER_INIT(x, name)                                              \
+  static scope::AfterInitFn AFTER_INIT_FN_NAME(x) =                            \
+      scope::RegisterAfterInit(x, name);

@@ -27,20 +27,18 @@ bool available();
 */
 void bind_node(int node);
 
-
-template <typename T>
-T* alloc_node(size_t count, int node) {
+template <typename T> T *alloc_node(size_t count, int node) {
 #if defined(SCOPE_USE_NUMA) && SCOPE_USE_NUMA == 1
-  return static_cast<T*>(numa_alloc_onnode(count * sizeof(T), node));
+  return static_cast<T *>(numa_alloc_onnode(count * sizeof(T), node));
 #else
-  return static_cast<T*>(malloc(count * sizeof(T)));
+  return static_cast<T *>(malloc(count * sizeof(T)));
 #endif
 }
 
 void free_node(void *start, size_t size);
 
 /* return the numa nodes on that we can allocate on
-*/
+ */
 std::set<int> mems();
 
 /* return the CPUs in `node` we can bind to
@@ -59,7 +57,8 @@ bool can_execute_in_node(int node);
 // return the CPUs on which the task is allowed to run in it's current context
 std::set<int> get_context_cpus();
 
-// return the nodes in which the process is allowed to allocate in its current context
+// return the nodes in which the process is allowed to allocate in its current
+// context
 std::set<int> get_context_mems();
 
 /* bind to `node` while in scope. Release bind on destruction

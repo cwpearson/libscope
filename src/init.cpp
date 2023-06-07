@@ -69,7 +69,7 @@ void stabilize_system_state() {
     turbo::Result res = turbo::disable();
     if (turbo::Result::SUCCESS != res) {
       LOG(error, "unable to disable CPU turbo: {}. Run with higher privileges?",
-      turbo::get_string(res));
+          turbo::get_string(res));
     } else {
       LOG(info, "Disabled CPU turbo");
     }
@@ -77,8 +77,10 @@ void stabilize_system_state() {
   {
     governor::Result res = governor::set_state_maximum();
     if (governor::Result::SUCCESS != res) {
-      LOG(error, "unable to set OS CPU governor to maximum: {}. Run with higher "
-                "privileges?", governor::get_string(res));
+      LOG(error,
+          "unable to set OS CPU governor to maximum: {}. Run with higher "
+          "privileges?",
+          governor::get_string(res));
     } else {
       LOG(info, "Set OS CPU governor to maximum");
     }
@@ -145,9 +147,7 @@ void do_after_inits() {
   }
 }
 
-void help_printer() {
-  scope::show_help(std::cerr);
-}
+void help_printer() { scope::show_help(std::cerr); }
 
 void initialize(int *argc, char **argv) {
 
@@ -170,8 +170,9 @@ void initialize(int *argc, char **argv) {
     exit(EXIT_SUCCESS);
   }
 
-  /* create a logger after parsing flags, since flags may change the logger created
-     but before doing anything else, so we can log everything else we're doing
+  /* create a logger after parsing flags, since flags may change the logger
+     created but before doing anything else, so we can log everything else we're
+     doing
   */
   scope::logging::init();
 

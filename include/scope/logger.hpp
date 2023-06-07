@@ -3,14 +3,14 @@
 #include <spdlog/spdlog.h>
 
 namespace scope {
-  namespace logger {
-    extern std::shared_ptr<spdlog::logger> console;
+namespace logger {
+extern std::shared_ptr<spdlog::logger> console;
 } // namespace logger
 
 namespace logging {
-  /* set up loggers */
-  void init();
-}
+/* set up loggers */
+void init();
+} // namespace logging
 
 } // namespace scope
 

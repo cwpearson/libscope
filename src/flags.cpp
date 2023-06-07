@@ -21,14 +21,16 @@ bool numa_is_visible(int node) noexcept {
   if (visibleNUMAs.empty()) {
     return true;
   }
-  return visibleNUMAs.end() != std::find(visibleNUMAs.begin(), visibleNUMAs.end(), node);
+  return visibleNUMAs.end() !=
+         std::find(visibleNUMAs.begin(), visibleNUMAs.end(), node);
 }
 
 bool gpu_is_visible(int id) noexcept {
   if (visibleGPUs.empty()) {
     return true;
   }
-  return visibleGPUs.end() != std::find(visibleGPUs.begin(), visibleGPUs.end(), id);
+  return visibleGPUs.end() !=
+         std::find(visibleGPUs.begin(), visibleGPUs.end(), id);
 }
 
 } // namespace flags

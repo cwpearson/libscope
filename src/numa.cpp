@@ -12,12 +12,9 @@
 #include "scope/logger.hpp"
 #include "scope/numa.hpp"
 
-
-
 namespace numa {
 
-inline
-std::set<int> cpumask_to_vec(const struct bitmask *mask) {
+inline std::set<int> cpumask_to_vec(const struct bitmask *mask) {
   std::set<int> cpus;
   for (int i = 0; i < numa_num_possible_cpus(); ++i) {
     if (numa_bitmask_isbitset(mask, i)) {
@@ -27,8 +24,7 @@ std::set<int> cpumask_to_vec(const struct bitmask *mask) {
   return cpus;
 }
 
-inline
-std::set<int> nodemask_to_vec(const struct bitmask *mask) {
+inline std::set<int> nodemask_to_vec(const struct bitmask *mask) {
   std::set<int> nodes;
   for (int i = 0; i < numa_num_possible_nodes(); ++i) {
     if (numa_bitmask_isbitset(mask, i)) {
@@ -38,16 +34,14 @@ std::set<int> nodemask_to_vec(const struct bitmask *mask) {
   return nodes;
 }
 
-inline 
-std::set<int> all_cpus() {
+inline std::set<int> all_cpus() {
   // points to a bitmask that is allocated by the library with
   // bits representing all cpus on which the calling task may
   // execute
   return cpumask_to_vec(numa_all_cpus_ptr);
 }
 
-inline 
-std::set<int> all_mems() {
+inline std::set<int> all_mems() {
   // points to a bitmask that is allocated by the library with
   // bits representing all nodes on which the calling task may
   // allocate memory
@@ -142,8 +136,6 @@ void bind_node(const int node) {
 #endif
 }
 
-
-
 std::set<int> mems() {
   std::set<int> ret;
 #if SCOPE_USE_NUMA
@@ -226,7 +218,7 @@ void free_node(void *start, size_t size) {
   return numa_free(start, size);
 #else
   return free(start);
-  (void) size;
+  (void)size;
 #endif
 }
 
@@ -239,9 +231,9 @@ std::set<int> get_context_cpus() {
 }
 
 std::set<int> get_context_mems() {
-  // returns the mask of nodes from which the process is allowed to 
+  // returns the mask of nodes from which the process is allowed to
   // allocate memory in it's current cpuset context
-  struct bitmask * nodeMask = numa_get_mems_allowed();
+  struct bitmask *nodeMask = numa_get_mems_allowed();
   return nodemask_to_vec(nodeMask);
 }
 

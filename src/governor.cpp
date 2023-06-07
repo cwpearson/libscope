@@ -2,10 +2,10 @@
 
 #include <cassert>
 #include <cerrno>
+#include <chrono>
 #include <fstream>
 #include <string>
 #include <vector>
-#include <chrono>
 
 /*! return a set of CPUs the current thread can run on
  */

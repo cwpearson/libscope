@@ -27,7 +27,7 @@ bool can_read(const std::string &path) {
 }
 
 /* detect the available boost control methods on this system
-*/
+ */
 turbo::Method detect_method() {
   if (can_read("/sys/devices/system/cpu/intel_pstate/no_turbo")) {
     return turbo::Method::PSTATE;
@@ -114,9 +114,7 @@ turbo::Result read_acpi_cpufreq_boost(std::string &str) {
 
 namespace turbo {
 
-bool can_modify() {
-  return Method::NONE != detect_method();
-}
+bool can_modify() { return Method::NONE != detect_method(); }
 
 Result enable() {
   Method method = detect_method();
@@ -143,14 +141,14 @@ Result disable() {
 Result get_state(State *state) {
   state->method = detect_method();
   Result result;
-  
+
   if (Method::PSTATE == state->method) {
     std::string read;
     result = read_intel_pstate_no_turbo(read);
     if (result == Result::SUCCESS) {
       state->enabled = ("0\n" == read);
     }
-  } else if (Method::CPUFREQ== state->method) {
+  } else if (Method::CPUFREQ == state->method) {
     std::string read;
     result = read_acpi_cpufreq_boost(read);
     if (result == Result::SUCCESS) {
@@ -206,10 +204,10 @@ const char *get_string(const Method &method) {
   }
 }
 
-Result get_state() { 
-    Result ret = get_state(&global); 
-    return ret;
-    }
+Result get_state() {
+  Result ret = get_state(&global);
+  return ret;
+}
 
 Result set_state() { return set_state(global); }
 

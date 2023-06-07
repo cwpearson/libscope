@@ -39,11 +39,11 @@ Result get_state(State *state);
 Result set_state(const State &state);
 
 /* record the current turbo state into the global state
-*/
+ */
 Result get_state();
 
 /* set turbo state from the global state
-*/
+ */
 Result set_state();
 
 } // namespace turbo
