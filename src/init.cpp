@@ -11,6 +11,7 @@
 #include "scope/init.hpp"
 #include "scope/logger.hpp"
 #include "scope/numa.hpp"
+#include "scope/openmp.hpp"
 #include "scope/turbo.hpp"
 
 /* record the state of the system so we can restore when we exit
@@ -183,6 +184,7 @@ void initialize(int *argc, char **argv) {
   stabilize_system_state();
 
   numa::init();
+  openmp::init();
 
   do_before_inits();
   do_inits();

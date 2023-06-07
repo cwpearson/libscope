@@ -1,10 +1,8 @@
 #include <algorithm>
-#include <iostream>
-#include <map>
 #include <set>
 #include <thread>
 
-#if defined(SCOPE_USE_NUMA)
+#if defined(SCOPE_USE_NUMA) && SCOPE_USE_NUMA == 1
 #include <numa.h>
 #include <unistd.h>
 #endif
@@ -14,36 +12,47 @@
 #include "scope/logger.hpp"
 #include "scope/numa.hpp"
 
-template <typename T> void sort_and_uniqify(std::vector<T> &v) {
-  std::sort(v.begin(), v.end());
-  auto it = std::unique(v.begin(), v.end());
-  v.resize(std::distance(v.begin(), it));
-}
+
 
 namespace numa {
 
-namespace detail {
+inline
+std::set<int> cpumask_to_vec(const struct bitmask *mask) {
+  std::set<int> cpus;
+  for (int i = 0; i < numa_num_possible_cpus(); ++i) {
+    if (numa_bitmask_isbitset(mask, i)) {
+      cpus.insert(i);
+    }
+  }
+  return cpus;
+}
 
-/* cache of node -> cpus
- */
-std::map<int, std::vector<int>> CPUsInNode;
+inline
+std::set<int> nodemask_to_vec(const struct bitmask *mask) {
+  std::set<int> nodes;
+  for (int i = 0; i < numa_num_possible_nodes(); ++i) {
+    if (numa_bitmask_isbitset(mask, i)) {
+      nodes.insert(i);
+    }
+  }
+  return nodes;
+}
 
-/* cache of node -> memory */
-std::map<int, std::vector<int>> memoriesInNode;
+inline 
+std::set<int> all_cpus() {
+  // points to a bitmask that is allocated by the library with
+  // bits representing all cpus on which the calling task may
+  // execute
+  return cpumask_to_vec(numa_all_cpus_ptr);
+}
 
-/* all nodes with CPUs
- */
-std::vector<int> nodesWithCPUs;
-
-/* CPUs the process is allowed to run on
- */
-std::set<int> allowedCPUs;
-
-/* NUMA nodes the process is allowed to allocate on
- */
-std::set<int> allowedMems;
-
-} // namespace detail
+inline 
+std::set<int> all_mems() {
+  // points to a bitmask that is allocated by the library with
+  // bits representing all nodes on which the calling task may
+  // allocate memory
+  return nodemask_to_vec(numa_all_nodes_ptr);
+}
 
 void init() {
 
@@ -56,50 +65,27 @@ void init() {
   // managed clusters
   LOG(trace, "numa_num_possible_cpus()={}", numa_num_possible_cpus());
   // struct bitmask *allowedCpus = numa_get_run_node_mask();
-  for (int i = 0; i < numa_num_possible_cpus(); ++i) {
-    if (numa_bitmask_isbitset(numa_all_cpus_ptr, i)) {
-      LOG(trace, "mayrun on CPU {}", i);
-      detail::allowedCPUs.insert(i);
-    }
+  for (int cpu : all_cpus()) {
+    LOG(debug, "may run on CPU {}", cpu);
   }
-  // numa_free_cpumask(allowedCpus);
 
-  // returns a mask of nodes on which the current task
-  // is allowed to allocate memory
-  struct bitmask *allowedMems = numa_get_mems_allowed();
-  for (int i = 0; i < numa_max_possible_node(); ++i) {
-    if (numa_bitmask_isbitset(allowedMems, i)) {
-      LOG(trace, "may allocate on NUMA node {}", i);
-      detail::allowedMems.insert(i);
-    }
+  for (int mem : all_mems()) {
+    LOG(debug, "may allocate on node {}", mem);
   }
-  numa_free_nodemask(allowedMems);
 
-  for (int cpu : detail::allowedCPUs) {
+  for (int cpu : all_cpus()) {
     int node = numa_node_of_cpu(cpu);
     if (scope::flags::numa_is_visible(node)) {
-      detail::CPUsInNode[node].push_back(cpu);
-      detail::nodesWithCPUs.push_back(node);
-      LOG(trace, "CPU {} in NUMA node {}", cpu, node);
+      LOG(debug, "CPU {} in NUMA node {}", cpu, node);
     }
   }
-  for (auto &kv : detail::CPUsInNode) {
-    std::vector<int> &cpus = kv.second;
-    sort_and_uniqify(cpus);
-  }
-  sort_and_uniqify(detail::nodesWithCPUs);
 #else
   if (!scope::flags::visibleNUMAs.empty()) {
     LOG(critical, "NUMA visibility set with --numa, but scope not compiled "
                   "with NUMA support");
     scope::safe_exit(EXIT_FAILURE);
   }
-  for (unsigned i = 0; i < std::thread::hardware_concurrency(); ++i) {
-    detail::CPUsInNode[0].push_back(i);
-  }
-  detail::nodesWithCPUs = {0};
 #endif
-
   if (!available()) {
     if (!scope::flags::visibleNUMAs.empty()) {
       LOG(critical, "NUMA visibility set with --numa, but NUMA not available");
@@ -146,9 +132,7 @@ void bind_node(const int node) {
     numa_set_membind(nodemask);
 
     // bind execution
-    struct bitmask *cpumask = numa_allocate_cpumask();
-    numa_node_to_cpus(node, cpumask);
-    numa_sched_setaffinity(getpid(), cpumask);
+    numa_run_on_node(node);
   } else {
     LOG(critical, "expected node >= -1");
     scope::safe_exit(EXIT_FAILURE);
@@ -158,38 +142,46 @@ void bind_node(const int node) {
 #endif
 }
 
-int node_count() { return ids().size(); }
 
-const std::vector<int> &ids() { return detail::nodesWithCPUs; }
 
-const std::vector<int> &cpu_nodes() { return ids(); }
-
-const std::vector<int> nodes() {
-  std::vector<int> ret;
-  for (int node : detail::allowedMems) {
+std::set<int> mems() {
+  std::set<int> ret;
+#if SCOPE_USE_NUMA
+  for (int node : all_mems()) {
     if (scope::flags::numa_is_visible(node)) {
-      ret.push_back(node);
+      ret.insert(node);
     }
   }
-  sort_and_uniqify(ret);
+#else
+  return ret.insert(0);
+#endif
   return ret;
 }
 
-std::vector<int> cpus_in_node(int node) {
-  if (detail::CPUsInNode.count(node)) {
-    return detail::CPUsInNode[node];
-  } else {
-    return {};
+std::set<int> cpus_in_node(int node) {
+  std::set<int> cpus;
+#if SCOPE_USE_NUMA
+  if (scope::flags::numa_is_visible(node)) {
+    for (int cpu : all_cpus()) {
+      if (node == numa_node_of_cpu(cpu)) {
+        cpus.insert(cpu);
+      }
+    }
   }
+#else
+  for (int i = 0; i < std::thread::hardware_concurrency(); ++i) {
+    cpus.insert(i);
+  }
+#endif
+  return cpus;
 }
 
-std::vector<int> cpus_in_nodes(const std::vector<int> &nodes) {
-  std::vector<int> ret;
-  for (auto &node : nodes) {
-    std::vector<int> cpus = cpus_in_node(node);
-    ret.insert(ret.end(), cpus.begin(), cpus.end());
+std::set<int> cpus_in_nodes(const std::set<int> &nodes) {
+  std::set<int> ret;
+  for (int node : nodes) {
+    std::set<int> cpus = cpus_in_node(node);
+    ret.insert(cpus.begin(), cpus.end());
   }
-  sort_and_uniqify(ret);
   return ret;
 }
 
@@ -197,6 +189,7 @@ bool can_execute_in_node(int node) { return !cpus_in_node(node).empty(); }
 
 void bind_cpu(const std::vector<int> &cpus) {
   // allocate CPU maks
+#if defined(SCOPE_USE_NUMA)
   struct bitmask *mask = numa_allocate_cpumask();
 
   for (int cpu : cpus) {
@@ -207,6 +200,7 @@ void bind_cpu(const std::vector<int> &cpus) {
   numa_run_on_node_mask(mask);
 
   numa_free_cpumask(mask);
+#endif
 }
 
 void *alloc_onnode(size_t size, int node) {
@@ -225,6 +219,30 @@ ScopedBind::~ScopedBind() {
 ScopedBind::ScopedBind(ScopedBind &&other) {
   active = other.active;
   other.active = false;
+}
+
+void free_node(void *start, size_t size) {
+#if defined(SCOPE_USE_NUMA) && SCOPE_USE_NUMA == 1
+  return numa_free(start, size);
+#else
+  return free(start);
+  (void) size;
+#endif
+}
+
+std::set<int> get_context_cpus() {
+  struct bitmask *affinity = numa_allocate_cpumask();
+  numa_sched_getaffinity(getpid(), affinity);
+  auto cpus = cpumask_to_vec(affinity);
+  numa_free_cpumask(affinity);
+  return cpus;
+}
+
+std::set<int> get_context_mems() {
+  // returns the mask of nodes from which the process is allowed to 
+  // allocate memory in it's current cpuset context
+  struct bitmask * nodeMask = numa_get_mems_allowed();
+  return nodemask_to_vec(nodeMask);
 }
 
 } // namespace numa

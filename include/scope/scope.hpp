@@ -32,6 +32,7 @@
 #include "scope/init.hpp"
 #include "scope/logger.hpp"
 #include "scope/numa.hpp"
+#include "scope/openmp.hpp"
 #include "scope/page_size.hpp"
 #include "scope/system.hpp"
 #include "scope/turbo.hpp"
