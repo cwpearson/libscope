@@ -1,13 +1,28 @@
 #pragma once
 
-#include <vector>
+#include <sstream>
 
 #include <cuda_runtime.h>
 
 #include "scope/error.hpp"
 
-/* return the unique CUDA device IDs present on the system
- */
-const std::vector<int> unique_cuda_device_ids();
-
 cudaError_t cuda_reset_device(const int &id);
+
+
+namespace scope {
+namespace detail {
+inline void success_or_throw(cudaError err, const char *file, int line) {
+    if (cudaSuccess != err) {
+        std::stringstream ss;
+        ss << __FILE__ << ":" << __LINE__ << "CUDA error " << cudaGetErrorString(err);
+        throw std::runtime_error(ss.str());
+    }
+}
+} // namespace detail
+
+cudaError hip_reset_device(const int &id);
+
+} // namespace scope
+
+
+#define CUDA_RUNTIME(x) scope::detail::success_or_throw(x, __FILE__, __LINE__)

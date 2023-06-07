@@ -1,27 +1,27 @@
 #pragma once
 
+#if defined(SCOPE_USE_HIP)
 #include "scope/hip.hpp"
+#endif
+
+#if defined(SCOPE_USE_CUDA)
+#include "scope/cuda.hpp"
+#endif
 
 class Device {
 public:
 
     enum class Kind {
+        cuda,
         hip
     };
 
-    Device(const Kind &kind) : kind_(kind) {
-
-
-
-    }
+    Device(const Kind &kind, int id) : kind_(kind), id_(id) {}
 
     int device_id() const;
 
-    static Device hip_device(int id) {
-        Device device(Kind::hip);
-        device.id_ = id;
-        HIP_RUNTIME(hipGetDeviceProperties(&device.hipDeviceProp_, id));
-        return device;
+    operator int() const {
+        return id_;
     }
 
     /*
@@ -29,12 +29,28 @@ public:
     */
     bool can_map_host_memory() const;
 
+    #if defined(SCOPE_USE_HIP)
+    static Device hip_device(int id);
+    #endif
+
+    #if defined(SCOPE_USE_CUDA)
+    static Device cuda_device(int id);
+    #endif
+
 private:
     Kind kind_;
     int id_;
 
 #if defined(SCOPE_USE_HIP)
     hipDeviceProp_t hipDeviceProp_;
+#endif
+
+#if defined(SCOPE_USE_CUDA)
+#if defined(SCOPE_HAVE_CUDA_DEVICE_PROP)
+    cudaDeviceProp cudaDeviceProp_;
+#else
+    cudaDeviceProp_t cudaDeviceProp_;
+#endif
 #endif
 };
 

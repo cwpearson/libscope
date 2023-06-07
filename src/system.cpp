@@ -135,6 +135,20 @@ std::vector<Device> hip_devices() {
     return ret;
 }
 
+std::vector<Device> cuda_devices() {
+    std::vector<Device> ret;
+#if defined(SCOPE_USE_CUDA)
+    int ndev;
+    CUDA_RUNTIME(cudaGetDeviceCount(&ndev));
+    for (int i = 0; i < ndev; ++i) {
+        if (scope::flags::gpu_is_visible(i)) {
+             ret.push_back(Device::cuda_device(i));
+        }
+    }
+#endif
+    return ret;
+}
+
 } // namespace system
 } // namespace scope
 

@@ -1,8 +1,8 @@
 #include <algorithm>
+#include <iostream>
 #include <map>
 #include <set>
 #include <thread>
-#include <iostream>
 
 #if defined(SCOPE_USE_NUMA)
 #include <numa.h>
@@ -36,11 +36,11 @@ std::map<int, std::vector<int>> memoriesInNode;
 std::vector<int> nodesWithCPUs;
 
 /* CPUs the process is allowed to run on
-*/
+ */
 std::set<int> allowedCPUs;
 
 /* NUMA nodes the process is allowed to allocate on
-*/
+ */
 std::set<int> allowedMems;
 
 } // namespace detail
@@ -74,7 +74,6 @@ void init() {
     }
   }
   numa_free_nodemask(allowedMems);
-
 
   for (int cpu : detail::allowedCPUs) {
     int node = numa_node_of_cpu(cpu);
@@ -173,7 +172,7 @@ const std::vector<int> nodes() {
     }
   }
   sort_and_uniqify(ret);
-  return ret; 
+  return ret;
 }
 
 std::vector<int> cpus_in_node(int node) {
@@ -194,9 +193,7 @@ std::vector<int> cpus_in_nodes(const std::vector<int> &nodes) {
   return ret;
 }
 
-bool can_execute_in_node(int node) {
-  return !cpus_in_node(node).empty();
-}
+bool can_execute_in_node(int node) { return !cpus_in_node(node).empty(); }
 
 void bind_cpu(const std::vector<int> &cpus) {
   // allocate CPU maks
@@ -212,6 +209,12 @@ void bind_cpu(const std::vector<int> &cpus) {
   numa_free_cpumask(mask);
 }
 
+void *alloc_onnode(size_t size, int node) {
+  return numa_alloc_onnode(size, node);
+}
+
+void free(void *start, size_t size) { return numa_free(start, size); }
+
 ScopedBind::ScopedBind(int node) : active(true) { bind_node(node); }
 
 ScopedBind::~ScopedBind() {
@@ -223,7 +226,5 @@ ScopedBind::ScopedBind(ScopedBind &&other) {
   active = other.active;
   other.active = false;
 }
-
-
 
 } // namespace numa

@@ -48,6 +48,8 @@ add_subdirectory(thirdparty/spdlog)
 # Add Lyra
 add_subdirectory(thirdparty/Lyra)
 
+
+
 add_subdirectory(src)
 
 add_library(scope
@@ -165,6 +167,14 @@ if("CUDA" IN_LIST languages)
     target_compile_definitions(scope PUBLIC -DSCOPE_USE_CUDA=1)
 else()
 endif()
+
+if (SCOPE_USE_CUDA)
+  # check if it's cudaDeviceProp
+  include(try_cudaDeviceProp)
+  if (SCOPE_HAVE_CUDA_DEVICE_PROP)
+  target_compile_definitions(scope PUBLIC -DSCOPE_HAVE_CUDA_DEVICE_PROP)
+  endif()
+endif(SCOPE_USE_CUDA)
 
 if(SCOPE_USE_HIP)
   target_compile_definitions(scope PUBLIC -DSCOPE_USE_HIP=1)

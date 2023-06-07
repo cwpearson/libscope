@@ -3,6 +3,7 @@
 int MemorySpace::device_id() const {
     switch(kind()) {
         case Kind::hip_device:
+        case Kind::hip_mapped_pinned:
         case Kind::cuda_device:
         return deviceId_;
         case Kind::numa:
@@ -14,6 +15,7 @@ int MemorySpace::device_id() const {
 int MemorySpace::numa_id() const {
         switch(kind()) {
         case Kind::numa:
+        case Kind::hip_mapped_pinned:
         return numaId_;
         case Kind::hip_device:
         case Kind::cuda_device:

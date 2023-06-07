@@ -31,9 +31,13 @@ enum class TransferMethod {
 
 std::vector<TransferMethod> transfer_methods(const MemorySpace &src, const MemorySpace &dst);
 
-/* return HIP device IDs that the process can execute on
+/* return HIP devices that the process can execute on
 */
 std::vector<Device> hip_devices();
+
+/* return CUDA devices that the process can execute on
+*/
+std::vector<Device> cuda_devices();
 
 } // namespace system
 } // namespace scope
