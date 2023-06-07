@@ -175,14 +175,6 @@ if("CUDA" IN_LIST languages AND SCOPE_USE_CUDA)
 else()
 endif()
 
-if (SCOPE_USE_CUDA)
-  # check if it's cudaDeviceProp
-  include(try_cudaDeviceProp)
-  if (SCOPE_HAVE_CUDA_DEVICE_PROP)
-  target_compile_definitions(scope PUBLIC -DSCOPE_HAVE_CUDA_DEVICE_PROP)
-  endif()
-endif(SCOPE_USE_CUDA)
-
 if(SCOPE_USE_HIP)
   message(STATUS "HIP enabled, compiling with -DSCOPE_USE_HIP=1")
   target_compile_definitions(scope PUBLIC -DSCOPE_USE_HIP=1)

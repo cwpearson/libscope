@@ -40,10 +40,6 @@ private:
 #endif
 
 #if defined(SCOPE_USE_CUDA)
-#if defined(SCOPE_HAVE_CUDA_DEVICE_PROP)
   cudaDeviceProp cudaDeviceProp_;
-#else
-  cudaDeviceProp_t cudaDeviceProp_;
-#endif
 #endif
 };

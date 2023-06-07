@@ -6,8 +6,6 @@
 
 #include "scope/error.hpp"
 
-cudaError_t cuda_reset_device(const int &id);
-
 namespace scope {
 namespace detail {
 inline void success_or_throw(cudaError err, const char *file, int line) {
@@ -20,7 +18,7 @@ inline void success_or_throw(cudaError err, const char *file, int line) {
 }
 } // namespace detail
 
-cudaError hip_reset_device(const int &id);
+cudaError_t cuda_reset_device(const int &id);
 
 } // namespace scope
 
