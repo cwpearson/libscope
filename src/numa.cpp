@@ -46,7 +46,7 @@ inline std::set<int> all_cpus() {
   return cpumask_to_set(numa_all_cpus_ptr);
 #else
   std::set<int> cpus;
-  for (int i = 0; i < std::thread::hardware_concurrency(); ++i) {
+  for (size_t i = 0; i < std::thread::hardware_concurrency(); ++i) {
     cpus.insert(i);
   }
   return cpus;
