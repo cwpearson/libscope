@@ -1,3 +1,6 @@
+# The first part of this file tries to reconcile all the enabled options.
+# Then it prints the final configuration, then it configures libscope
+
 # 3.17 for FindCUDAToolkit
 cmake_minimum_required(VERSION 3.17 FATAL_ERROR)
 
@@ -10,14 +13,24 @@ option(SCOPE_USE_NUMA "" ON)
 option(SCOPE_TRY_DOWNLOAD_NUMA "" ON)
 option(SCOPE_USE_NVTX "" ON)
 option(SCOPE_USE_OPENMP "" ON)
-option(SCOPE_ARCH_MI250X "" OFF) # OLCF Crusher
+option(SCOPE_USE_HIP "Enable HIP Benchmarks" ON)
+option(SCOPE_ARCH_MI250X "" OFF)
+
+if(SCOPE_ARCH_MI250X)
+  message(STATUS "enabling SCOPE_USE_HIP because SCOPE_ARCH_MI250X is ON")
+  set(SCOPE_USE_HIP ON)
+endif()
+
+set(SCOPE_USE_HIP ${SCOPE_USE_HIP} PARENT_SCOPE)
 
 message(STATUS "SCOPE_USE_CUDA:          ${SCOPE_USE_CUDA}")
+message(STATUS "SCOPE_USE_HIP:           ${SCOPE_USE_HIP}")
 message(STATUS "SCOPE_USE_NUMA:          ${SCOPE_USE_NUMA}")
 message(STATUS "SCOPE_TRY_DOWNLOAD_NUMA: ${SCOPE_TRY_DOWNLOAD_NUMA}")
 message(STATUS "SCOPE_USE_NVTX:          ${SCOPE_USE_NVTX}")
 message(STATUS "SCOPE_USE_OPENMP:        ${SCOPE_USE_OPENMP}")
 message(STATUS "SCOPE_ARCH_MI250X:       ${SCOPE_ARCH_MI250X}")
+
 
 # enable CUDA if desired and available
 include(CheckLanguage)
@@ -62,12 +75,6 @@ add_subdirectory(thirdparty/spdlog)
 # Add Lyra
 add_subdirectory(thirdparty/Lyra)
 
-set(SCOPE_USE_HIP OFF PARENT_SCOPE)
-if(SCOPE_ARCH_MI250X)
-  message(STATUS "enabling SCOPE_USE_HIP because SCOPE_ARCH_MI250X is ON")
-  set(SCOPE_USE_HIP ON)
-  set(SCOPE_USE_HIP ON PARENT_SCOPE)
-endif()
 
 add_subdirectory(src)
 add_library(scope
