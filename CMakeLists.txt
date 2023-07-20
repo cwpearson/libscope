@@ -9,11 +9,11 @@ project(SCOPE LANGUAGES CXX VERSION 1.1.2)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
 
 option(SCOPE_USE_CUDA "" OFF)
+option(SCOPE_USE_HIP "Enable HIP Benchmarks" OFF)
 option(SCOPE_USE_NUMA "" ON)
 option(SCOPE_TRY_DOWNLOAD_NUMA "" ON)
 option(SCOPE_USE_NVTX "" ON)
 option(SCOPE_USE_OPENMP "" ON)
-option(SCOPE_USE_HIP "Enable HIP Benchmarks" ON)
 option(SCOPE_ARCH_MI250X "" OFF)
 
 if(SCOPE_ARCH_MI250X)
