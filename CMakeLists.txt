@@ -110,8 +110,6 @@ $<$<COMPILE_LANGUAGE:CXX>:
     -Wfloat-equal;
     -Wundef;
     -Wvla;
-    -fmax-errors=1;
-    -Wfatal-errors;
 >
   )
 
@@ -130,8 +128,6 @@ $<$<COMPILE_LANGUAGE:CUDA>:
     -Xcompiler=-Wswitch-enum;
     -Xcompiler=-Wfloat-equal;
     -Xcompiler=-Wvla;
-    -Xcompiler=-fmax-errors=1;
-    -Xcompiler=-Wfatal-errors;
 >
 )
 # disable GCC notes
